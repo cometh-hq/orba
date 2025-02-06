@@ -25,7 +25,7 @@ import { delayModuleABI } from "../abi/delayModule";
 import { delayModuleFactoryABI } from "../abi/delayModuleFactory";
 
 import * as dotenv from 'dotenv'
-dotenv.config()
+dotenv.config({ path: '.env.local' });
 
 const COOLDOWN_DELAY = 60;
 const EXPIRATION = 600;

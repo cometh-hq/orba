@@ -25,7 +25,7 @@ import {
 } from "viem/account-abstraction";
 
 import * as dotenv from 'dotenv'
-dotenv.config()
+dotenv.config({ path: '.env.local' });
 
 const USDC_ADDRESS_ARB_SEPOLIA = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"
 

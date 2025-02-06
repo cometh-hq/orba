@@ -22,7 +22,7 @@ import {
 } from "viem/account-abstraction";
 
 import * as dotenv from 'dotenv'
-dotenv.config()
+dotenv.config({ path: '.env.local' });
 
 const USDC_ADDRESS_BASE_SEPOLIA = "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
 const aavePoolContractBaseSepolia = "0xbE781D7Bdf469f3d94a62Cdcc407aCe106AEcA74"
