@@ -9,7 +9,7 @@
     "coowner-execute": "tsx ./src/coOwnerSignExecute.ts",
     "withdraw-and-deposit": "tsx ./src/withdrawAndDepositUserOp.ts",
     "withdraw-with-delay": "tsx ./src/withdrawWithDelayModule.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
