@@ -1,4 +1,4 @@
-import { arbitrumSepolia, sepolia } from "viem/chains";
+import { arbitrumSepolia, baseSepolia } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import {
   Address,
@@ -13,7 +13,6 @@ import {
   pad,
   parseAbi,
   parseAbiParameters,
-  SendTransactionParameters,
 } from "viem";
 import { createPimlicoClient } from "permissionless/clients/pimlico";
 import {
@@ -24,14 +23,14 @@ import { toSafeSmartAccount } from "permissionless/accounts";
 import { createSmartAccountClient } from "permissionless";
 import { delayModuleABI } from "../abi/delayModule";
 import { delayModuleFactoryABI } from "../abi/delayModuleFactory";
-import { getAction } from "viem/utils";
-import { sendTransaction } from "permissionless/actions/smartAccount";
+
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 const COOLDOWN_DELAY = 60;
 const EXPIRATION = 600;
 const MODULE_ADDRESS = "0xd54895b1121a2ee3f37b502f507631fa1331bed6";
 const MODULE_FACTORY_ADDRESS = "0x000000000000aDdB49795b0f9bA5BC298cDda236";
-const GARDIAN_ADDRESS = "0xF64DA4EFa19b42ef2f897a3D533294b892e6d99E";
 
 const getDelayAddress = (
   safe: Address,
@@ -163,15 +162,22 @@ const setupDelayTx = async (
 
 async function main() {
   const privateKey = process.env.PRIVATE_KEY;
-  const paymasterUrl =
-    "https://paymaster.cometh.io/421614/?apikey=k0sIbycgG7svL6XxDyDBdRxalGMixTJy";
+  const privateKeyCoOwner = process.env.PRIVATE_KEY_COOWNER;
+  const paymasterUrl = process.env.PAYMASTER_URL;
+  const bundlerUrl = process.env.BUNDLER_URL;
 
   if (!privateKey) {
     throw new Error("Please specify a private key");
   }
 
-  const chain = arbitrumSepolia;
+  if (!privateKeyCoOwner) {
+    throw new Error("Please specify a co-owner private key");
+  }
+
+  const chain = baseSepolia;
   const owner = privateKeyToAccount(privateKey as Hex);
+  const coOwner = privateKeyToAccount(privateKeyCoOwner as Hex);
+  const owners = [owner, coOwner];
 
   const publicClient = createPublicClient({
     chain: chain,
@@ -179,16 +185,12 @@ async function main() {
   });
 
   const pimlicoClient = createPimlicoClient({
-    transport: http(
-      "https://api.pimlico.io/v2/421614/rpc?apikey=pim_aUB5bGRJKqWKR2UrWPk3g3"
-    ),
+    transport: http(bundlerUrl),
     entryPoint: {
       address: entryPoint07Address,
       version: "0.7",
     },
   });
-
-  console.log(`Owner address: ${owner.address}`);
 
   const paymasterClient = createPaymasterClient({
     transport: http(paymasterUrl),
@@ -200,7 +202,8 @@ async function main() {
       address: entryPoint07Address,
       version: "0.7",
     },
-    owners: [owner],
+    owners,
+    saltNonce: 4n, // optional
     version: "1.4.1",
   });
   const safeAddress = await safeAccount.getAddress();
@@ -211,18 +214,16 @@ async function main() {
 
   const smartAccountClient = createSmartAccountClient({
     account: safeAccount,
-    chain: arbitrumSepolia,
+    chain,
     paymaster: paymasterClient,
-    bundlerTransport: http(
-      "https://api.pimlico.io/v2/421614/rpc?apikey=pim_aUB5bGRJKqWKR2UrWPk3g3"
-    ),
+    bundlerTransport: http(bundlerUrl),
     userOperation: {
       estimateFeesPerGas: async () => gas,
     },
   });
 
   const setupTxs = await setupDelayTx(
-    GARDIAN_ADDRESS,
+    owner.address,
     MODULE_FACTORY_ADDRESS,
     MODULE_ADDRESS,
     safeAddress,
@@ -230,24 +231,31 @@ async function main() {
     EXPIRATION
   );
 
-  /*const setupTxsHash = await getAction(
-    smartAccountClient,
-    sendTransaction,
-    "sendTransaction"
-  )({
-    calls: setupTxs,
-  } as unknown as SendTransactionParameters);*/
-
-  //console.log("setupTxsHash", setupTxsHash);
+  console.log("setupTxs", setupTxs);
 
   const txHash = await smartAccountClient.sendTransaction({ calls: setupTxs });
-
-  /* const txHash = await smartAccountClient.sendTransaction({
-    to: "0x4FbF9EE4B2AF774D4617eAb027ac2901a41a7b5F",
-    data: "0x06661abd",
-  });*/
-
   console.log(txHash);
+
+  //Change threshold to 2
+
+  const txHashTreshold = await smartAccountClient.sendTransaction({
+    calls: [
+      {
+        to: safeAddress,
+        value: BigInt(0),
+        data: encodeFunctionData({
+          abi: parseAbi([
+            "function changeThreshold(uint256 _threshold) external"
+          ]),
+          functionName: 'changeThreshold',
+          args: [BigInt(2)],
+        }),
+      }]
+  });
+
+
+  console.log(txHashTreshold);
+
 }
 
 // Properly handle async execution
