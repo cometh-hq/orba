@@ -1,8 +1,7 @@
 # One Balance with Safe Smart Account and Delay module
 
 ## What is One Balance
-One Balance is a **Chain Abstraction Toolkit** that simplifies cross-chain interactions by using smart accounts to manage user funds efficiently. 
-One Balance Smart Accounts allow users to deposit funds into a secure environment, facilitating controlled and permissioned withdrawals.
+OneBalance is a Chain Abstraction Toolkit designed to simplify cross-chain interactions by utilizing Credible Accounts. These accounts enable users to manage funds across multiple blockchains efficiently, allowing for secure deposits and controlled, permissioned withdrawals without relying on global consensus mechanisms. 
 
 More details can be found in the official documentation:
 - [Getting Started with One Balance and Privy](https://docs.onebalance.io/chain-abstraction-toolkit/getting-started-with-onebalance-and-privy)
