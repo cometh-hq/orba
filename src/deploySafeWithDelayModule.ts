@@ -165,6 +165,8 @@ async function main() {
   const privateKeyCoOwner = process.env.PRIVATE_KEY_COOWNER;
   const paymasterUrl = process.env.PAYMASTER_URL;
   const bundlerUrl = process.env.BUNDLER_URL;
+  const chainId = process.env.CHAIN_ID;
+  const saltNonce = process.env.SALT_NONCE || 0;
 
   if (!privateKey) {
     throw new Error("Please specify a private key");
@@ -174,7 +176,15 @@ async function main() {
     throw new Error("Please specify a co-owner private key");
   }
 
-  const chain = baseSepolia;
+  let chain
+  if (chainId == "421614") {
+    chain = arbitrumSepolia;
+  } else if (chainId == "84532") {
+    chain = baseSepolia;
+  } else {
+    throw new Error("Chain id");
+  }
+
   const owner = privateKeyToAccount(privateKey as Hex);
   const coOwner = privateKeyToAccount(privateKeyCoOwner as Hex);
   const owners = [owner, coOwner];
@@ -203,7 +213,7 @@ async function main() {
       version: "0.7",
     },
     owners,
-    saltNonce: 4n, // optional
+    saltNonce: BigInt(saltNonce),
     version: "1.4.1",
   });
   const safeAddress = await safeAccount.getAddress();

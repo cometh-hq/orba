@@ -33,6 +33,7 @@ async function main() {
   const paymasterUrl = process.env.PAYMASTER_URL;
   const bundlerUrl = process.env.BUNDLER_URL;
   const smartAccountAddress = process.env.SMART_ACCOUNT_ADDRESS as Address;
+  const chainId = process.env.CHAIN_ID;
 
   if (!privateKey) {
     throw new Error("Please specify a private key");
@@ -42,7 +43,15 @@ async function main() {
     throw new Error("Please specify a co-owner private key");
   }
 
-  const chain = baseSepolia;
+  let chain
+  if (chainId == "421614") {
+    chain = arbitrumSepolia;
+  } else if (chainId == "84532") {
+    chain = baseSepolia;
+  } else {
+    throw new Error("Chain id");
+  }
+
   const owner = privateKeyToAccount(privateKey as Hex);
   const coOwner = privateKeyToAccount(privateKeyCoOwner as Hex);
   const owners = [owner, coOwner];

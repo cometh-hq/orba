@@ -1,4 +1,4 @@
-import { arbitrumSepolia } from "viem/chains";
+import { arbitrumSepolia, baseSepolia } from "viem/chains";
 
 import { privateKeyToAccount, toAccount } from "viem/accounts"
 import { createPimlicoClient } from "permissionless/clients/pimlico"
@@ -32,6 +32,7 @@ async function main() {
   const paymasterUrl = process.env.PAYMASTER_URL;
   const bundlerUrl = process.env.BUNDLER_URL;
   const smartAccountAddress = process.env.SMART_ACCOUNT_ADDRESS as Address;
+  const chainId = process.env.CHAIN_ID;
 
   if (!privateKey) {
     throw new Error("Please specify a private key");
@@ -41,13 +42,21 @@ async function main() {
     throw new Error("Please specify a co-owner private key");
   }
 
-  const chain = arbitrumSepolia;
+  let chain
+  if (chainId == "421614") {
+    chain = arbitrumSepolia;
+  } else if (chainId == "84532") {
+    chain = baseSepolia;
+  } else {
+    throw new Error("Chain id");
+  }
+
   const owner = privateKeyToAccount(privateKey as Hex);
   const coOwner = privateKeyToAccount(privateKeyCoOwner as Hex);
   const owners = [owner, coOwner];
 
   const publicClient = createPublicClient({
-    chain: chain,
+    chain,
     transport: http(),
   });
 
