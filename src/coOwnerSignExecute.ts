@@ -1,115 +1,41 @@
-import { arbitrumSepolia, baseSepolia } from "viem/chains";
-
-import { privateKeyToAccount, toAccount } from "viem/accounts"
-import { createPimlicoClient } from "permissionless/clients/pimlico"
-import { toSafeSmartAccount } from "permissionless/accounts"
+import { toAccount } from "viem/accounts"
 import { SafeSmartAccount } from "permissionless/accounts/safe"
-import { createSmartAccountClient } from "permissionless"
 import {
   Address,
-  createPublicClient,
   Hex,
-  http,
   encodeFunctionData,
   parseAbi,
 } from "viem";
 
 import {
-  createPaymasterClient,
   entryPoint07Address,
 } from "viem/account-abstraction";
+
+import { SafeConfig } from './config/safeConfig';
 
 import fs from 'fs';
 
 import * as dotenv from 'dotenv'
 dotenv.config({ path: '.env.local' });
 
-const USDC_ADDRESS_ARB_SEPOLIA = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"
+const usdcAddress = process.env.USDC_ADDRESS as Address;
+const smartAccountAddress = process.env.SMART_ACCOUNT_ADDRESS as Address;
 
 async function main() {
-  const privateKey = process.env.PRIVATE_KEY;
-  const privateKeyCoOwner = process.env.PRIVATE_KEY_COOWNER;
-  const paymasterUrl = process.env.PAYMASTER_URL;
-  const bundlerUrl = process.env.BUNDLER_URL;
-  const smartAccountAddress = process.env.SMART_ACCOUNT_ADDRESS as Address;
-  const chainId = process.env.CHAIN_ID;
 
-  if (!privateKey) {
-    throw new Error("Please specify a private key");
-  }
-
-  if (!privateKeyCoOwner) {
-    throw new Error("Please specify a co-owner private key");
-  }
-
-  let chain
-  if (chainId == "421614") {
-    chain = arbitrumSepolia;
-  } else if (chainId == "84532") {
-    chain = baseSepolia;
-  } else {
-    throw new Error("Chain id");
-  }
-
-  const owner = privateKeyToAccount(privateKey as Hex);
-  const coOwner = privateKeyToAccount(privateKeyCoOwner as Hex);
-  const owners = [owner, coOwner];
-
-  const publicClient = createPublicClient({
-    chain,
-    transport: http(),
-  });
-
-  const pimlicoClient = createPimlicoClient({
-    transport: http(bundlerUrl),
-    entryPoint: {
-      address: entryPoint07Address,
-      version: "0.7",
-    },
-  });
-
-  const paymasterClient = createPaymasterClient({
-    transport: http(paymasterUrl),
-  });
-
-  const safeAccount = await toSafeSmartAccount({
-    client: publicClient,
-    entryPoint: {
-      address: entryPoint07Address,
-      version: "0.7",
-    },
-    owners,
-    version: "1.4.1",
-    address: smartAccountAddress,
-  });
-
-  const safeAddress = await safeAccount.getAddress();
-  console.log("smartAccountAddress", safeAddress);
-
-  const gas = (await pimlicoClient.getUserOperationGasPrice()).fast;
-  console.log("gas", gas);
-
-  const smartAccountClient = createSmartAccountClient({
-    account: safeAccount,
-    chain,
-    paymaster: paymasterClient,
-    bundlerTransport: http(bundlerUrl),
-    userOperation: {
-      estimateFeesPerGas: async () => gas,
-    },
-  });
-
+  const config = new SafeConfig();
+  await config.initSafeAccount(smartAccountAddress);
+  
   //The co-signer signs and executes the userOp for reimbursement
-
-  let unSignedUserOperationToExecute = await smartAccountClient.prepareUserOperation({
+  let unSignedUserOperationToExecute = await config.smartAccountClient.prepareUserOperation({
     calls: [
       {
-        to: USDC_ADDRESS_ARB_SEPOLIA,
+        to: usdcAddress,
         value: BigInt(0),
         data: encodeFunctionData({
           abi: parseAbi(["function transfer(address to, uint256 value) external returns (bool)"]),
           functionName: "transfer",
-          args: [coOwner.address, BigInt(0.1 * 10 ** 6)], // 0.1 USDC with 6 decimals
+          args: [config.owners[1].address, BigInt(0.1 * 10 ** 6)], // 0.1 USDC with 6 decimals
         }),
       },
     ],
@@ -137,19 +63,19 @@ async function main() {
       address: entryPoint07Address,
       version: "0.7",
     },
-    chainId: chain.id,
-    owners: owners.map((owner) => toAccount(owner.address)),
-    account: coOwner, // the owner that will sign the user operation
+    chainId: config.chain.id,
+    owners: config.owners.map((owner) => toAccount(owner.address)),
+    account: config.owners[1], // the owner that will sign the user operation
     signatures: partialSignatures as Hex,
     ...unSignedUserOperationToExecute,
   })
 
-  const userOpHash = await smartAccountClient.sendUserOperation({
+  const userOpHash = await config.smartAccountClient.sendUserOperation({
     ...unSignedUserOperation,
     signature: finalSignature,
   })
 
-  const receipt = await smartAccountClient.waitForUserOperationReceipt({
+  const receipt = await config.smartAccountClient.waitForUserOperationReceipt({
     hash: userOpHash,
   })
 
