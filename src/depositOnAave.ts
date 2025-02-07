@@ -26,18 +26,17 @@ async function main() {
 
   const config = new SafeConfig(baseSepolia.id);
   await config.initSafeAccount();
-  //User crafts a UserOp: deposit 0.1 USDC on Aave
 
   const approve = encodeFunctionData({
     abi: erc20Abi,
     functionName: "approve",
-    args: [baseSepoliaAavePoolAddress as `0x${string}`, BigInt(0.1 * 10 ** 6)],
+    args: [baseSepoliaAavePoolAddress as `0x${string}`, BigInt(2 * 10 ** 6)],
   });
 
   const supplyData = encodeFunctionData({
     abi: AAVE_POOL_ABI,
     functionName: "deposit",
-    args: [usdcAddress, BigInt(0.1 * 10 ** 6), config.safeAddress, 0],
+    args: [usdcAddress, BigInt(2 * 10 ** 6), config.safeAddress, 0],
   });
 
 
@@ -113,7 +112,6 @@ async function main() {
 
 }
 
-// Properly handle async execution
 main().catch((error) => {
   console.error(error.message);
 });

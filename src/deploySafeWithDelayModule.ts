@@ -66,11 +66,8 @@ async function main() {
   console.log(`Safe : ${arbitrumConfig.safeAddress} deployed for ${arbitrumConfig.owners[0].address} with ${arbitrumConfig.owners[1].address} as co signer`);
   console.log(`Delay Module: ${MODULE_ADDRESS} activated with ${arbitrumConfig.owners[0].address} as executor, ${arbitrumConfig.cooldownDelay} seconds of cooldown and ${arbitrumConfig.expiration} seconds of expiration.`);
   console.log(`Available on Base and Arbitrum sepolia.`);
-
-
 }
 
-// Properly handle async execution
 main().catch((error) => {
   console.error(error.message);
 });

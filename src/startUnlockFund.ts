@@ -55,7 +55,6 @@ async function main() {
 
 }
 
-// Properly handle async execution
 main().catch((error) => {
     console.error(error.message);
 });

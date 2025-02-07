@@ -17,7 +17,6 @@ async function main() {
     console.log(`Base Sepolia lock: ${baseBalance} USDC`);
 }
 
-// Properly handle async execution
 main().catch((error) => {
     console.error(error.message);
 });

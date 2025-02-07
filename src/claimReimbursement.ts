@@ -25,7 +25,6 @@ async function main() {
   const config = new SafeConfig(arbitrumSepolia.id);
   await config.initSafeAccount();
 
-  //The co-signer signs and executes the userOp for reimbursement
   let unSignedUserOperationToExecute = await config.smartAccountClient.prepareUserOperation({
     calls: [
       {
@@ -34,7 +33,7 @@ async function main() {
         data: encodeFunctionData({
           abi: parseAbi(["function transfer(address to, uint256 value) external returns (bool)"]),
           functionName: "transfer",
-          args: [config.owners[1].address, BigInt(0.1 * 10 ** 6)], // 0.1 USDC with 6 decimals
+          args: [config.owners[1].address, BigInt(2 * 10 ** 6)], 
         }),
       },
     ],
@@ -101,7 +100,6 @@ async function main() {
 
 }
 
-// Properly handle async execution
 main().catch((error) => {
   console.error(error.message);
 });

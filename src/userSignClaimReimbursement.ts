@@ -3,9 +3,7 @@ import { toAccount } from "viem/accounts"
 import { SafeSmartAccount } from "permissionless/accounts/safe"
 import {
   Address,
-  createWalletClient,
   encodeFunctionData,
-  http,
   parseAbi,
 } from "viem";
 
@@ -24,30 +22,7 @@ async function main() {
   const config = new SafeConfig(arbitrumSepolia.id);
   await config.initSafeAccount();
 
-  // User sends 10 USDC to SafeSmartAccount
-
-  const ownerClient = createWalletClient({
-    account: config.owners[0],
-    chain: config.chain,
-    transport: http()
-  })
-
-  const hash = await ownerClient.sendTransaction(
-    {
-      to: usdcAddress,
-      value: BigInt(0),
-      data: encodeFunctionData({
-        abi: parseAbi(["function transfer(address to, uint256 value) external returns (bool)"]),
-        functionName: "transfer",
-        args: [config.safeAddress, BigInt(0.2 * 10 ** 6)], // 0.2 USDC with 6 decimals
-      }),
-      chain: config.chain,
-    }
-  )
-
-  console.log("usdc transfert txHash", hash);
-
-  //User crafts a UserOp: sends 8 USDC on Arbitrum to the co-signer
+  //User crafts a UserOp: sends 2 USDC on Arbitrum to the co-signer
 
   const unSignedUserOperation = await config.smartAccountClient.prepareUserOperation({
     calls: [
@@ -57,7 +32,7 @@ async function main() {
         data: encodeFunctionData({
           abi: parseAbi(["function transfer(address to, uint256 value) external returns (bool)"]),
           functionName: "transfer",
-          args: [config.owners[1].address, BigInt(0.1 * 10 ** 6)], // 0.1 USDC with 6 decimals
+          args: [config.owners[1].address, BigInt(2 * 10 ** 6)], // 2 USDC with 6 decimals
         }),
       },
     ],
@@ -105,7 +80,6 @@ async function main() {
   console.log(`Saved on ./claim-userop-signed.json`);
 }
 
-// Properly handle async execution
 main().catch((error) => {
   console.error(error.message);
 });
