@@ -65,6 +65,105 @@ Each **OneBalance account** functions like its own **rollup**, managing user sta
 - Is secured by a **credible commitment machine**, ensuring commitments remain valid.
 
 
+# Setup and Usage Instructions
+
+## Install Dependencies
+
+Run the following command to install the required dependencies:
+
+```sh
+yarn install
+```
+
+## Configure Environment Variables
+
+Copy the `.env.example` file to `.env.local` and set your values as follows:
+
+```
+USER_PRIVATE_KEY=<YOUR_PRIVATE_KEY>
+COSIGNER_PRIVATE_KEY=<YOUR_PRIVATE_KEY_COOWNER>
+
+ARBITRUM_SEPOLIA_BUNDLER_URL=<YOUR_BUNDLER_URL>
+ARBITRUM_SEPOLIA_PAYMASTER_URL=<YOUR_PAYMASTER_URL>
+
+BASE_SEPOLIA_BUNDLER_URL=<YOUR_BUNDLER_URL>
+BASE_SEPOLIA_PAYMASTER_URL=<YOUR_PAYMASTER_URL>
+
+COOLDOWN=20
+EXPIRATION=60
+
+SAFE_SALT_NONCE=0
+```
+
+## Setup Safe Account
+
+Deploy a safe for the user and co-signer keys as owners. The safe is configured with a threshold of 2.
+
+A **Delay Module** is configured, allowing the user key to execute a transaction after a cooldown. This module locks user funds in the safe for a lock period equal to the cooldown.
+
+Run the following command:
+
+```sh
+yarn deploy-safe
+```
+
+Add the user safe address to your `.env.local`:
+
+```
+SMART_ACCOUNT_ADDRESS=<YOUR_SMART_ACCOUNT_ADDRESS>
+```
+
+## Send USDC to the Safe on Arbitrum
+
+You can get USDC from the Circle faucet here: [https://faucet.circle.com/](https://faucet.circle.com/)
+
+### Check Balance
+
+To check your balance, run:
+
+```sh
+yarn check-balance
+```
+
+## User Signs Claim for USDC Reimbursement on Arbitrum Sepolia
+
+Run the following command to sign the claim for reimbursement:
+
+```sh
+yarn user-sign-claim-reimbursement
+```
+
+## Deposit USDC on AAVE Base
+
+To deposit 2 USDC on AAVE Base, run:
+
+```sh
+yarn deposit-usdc-on-aave
+```
+
+## Co-Signer Claims Funds on Arbitrum
+
+To claim the funds on Arbitrum, the co-signer needs to run the following command:
+
+```sh
+yarn claim-reimbursement
+```
+
+## User Starts Unlocking Funds on Arbitrum
+
+To start unlocking the funds, run:
+
+```sh
+yarn start-unlock-fund
+```
+
+## User Finalizes Unlocking Funds on Arbitrum
+
+To finalize unlocking the funds, run:
+
+```sh
+yarn finalize-unlock-fund
+```
 
 
 
