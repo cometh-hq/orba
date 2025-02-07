@@ -12,27 +12,26 @@ import {
   Address,
 } from "viem";
 
+import { baseSepolia } from "viem/chains";
+
 import {
   entryPoint07Address,
 } from "viem/account-abstraction";
 
-import * as dotenv from 'dotenv'
-dotenv.config({ path: '.env.local' });
+import { USDC_ADDRESSES, baseSepoliaAavePoolAddress } from './services/usdcService';
 
-const usdcAddress = process.env.USDC_ADDRESS as Address;
-const aavePoolAddress = process.env.AAVE_POOL_ADDRESS as Address;
-const smartAccountAddress = process.env.SMART_ACCOUNT_ADDRESS as Address;
+const usdcAddress = USDC_ADDRESSES[baseSepolia.id] as Address;
 
 async function main() {
 
-  const config = new SafeConfig();
-  await config.initSafeAccount(smartAccountAddress);
+  const config = new SafeConfig(baseSepolia.id);
+  await config.initSafeAccount();
   //User crafts a UserOp: deposit 0.1 USDC on Aave
 
   const approve = encodeFunctionData({
     abi: erc20Abi,
     functionName: "approve",
-    args: [aavePoolAddress as `0x${string}`, BigInt(0.1 * 10 ** 6)],
+    args: [baseSepoliaAavePoolAddress as `0x${string}`, BigInt(0.1 * 10 ** 6)],
   });
 
   const supplyData = encodeFunctionData({
@@ -56,7 +55,7 @@ async function main() {
       },
       {
         data: supplyData,
-        to: aavePoolAddress as `0x${string}`,
+        to: baseSepoliaAavePoolAddress as `0x${string}`,
         value: BigInt(0),
       },
     ],
@@ -75,9 +74,6 @@ async function main() {
     account: config.owners[0], // the owner that will sign the user operation
     ...unSignedUserOperation,
   })
-
-  console.log("partialSignatures", partialSignatures as Hex);
-  console.log("unSignedUserOperation", unSignedUserOperation);
 
   //The co-signer signs the userOp
 
@@ -105,7 +101,15 @@ async function main() {
     hash: userOpHash,
   })
 
-  console.log(receipt.receipt.transactionHash);
+  console.log(`Deposit 2 USDC on ${config.chain.name}`);
+  const unSignedUserOperationToJson = JSON.stringify(unSignedUserOperation, (key, value) =>
+    typeof value === 'bigint' ? value.toString() : value,
+    2
+  );
+  console.log(`USER_OPERATION: ${unSignedUserOperationToJson}`);
+  console.log(`User Signature: ${partialSignatures}`);
+  console.log(`Co-signer Signature: ${finalSignature}`);
+  console.log(`Transaction Hash: ${receipt.receipt.transactionHash}`);
 
 }
 

@@ -1,10 +1,10 @@
+import { arbitrumSepolia } from "viem/chains";
 import { toAccount } from "viem/accounts"
 import { SafeSmartAccount } from "permissionless/accounts/safe"
 import {
   Address,
   createWalletClient,
   encodeFunctionData,
-  Hex,
   http,
   parseAbi,
 } from "viem";
@@ -12,19 +12,17 @@ import {
 import {
   entryPoint07Address,
 } from "viem/account-abstraction";
+
 import { SafeConfig } from "./config/safeConfig";
+import { USDC_ADDRESSES } from './services/usdcService';
 
 import fs from 'fs';
 
-import * as dotenv from 'dotenv'
-dotenv.config({ path: '.env.local' });
-
-const smartAccountAddress = process.env.SMART_ACCOUNT_ADDRESS as Address;
-const usdcAddress = process.env.USDC_ADDRESS as Address;
+const usdcAddress = USDC_ADDRESSES[arbitrumSepolia.id] as Address;
 
 async function main() {
-  const config = new SafeConfig();
-  await config.initSafeAccount(smartAccountAddress);
+  const config = new SafeConfig(arbitrumSepolia.id);
+  await config.initSafeAccount();
 
   // User sends 10 USDC to SafeSmartAccount
 
@@ -47,7 +45,7 @@ async function main() {
     }
   )
 
-  console.log("txHash", hash);
+  console.log("usdc transfert txHash", hash);
 
   //User crafts a UserOp: sends 8 USDC on Arbitrum to the co-signer
 
@@ -77,9 +75,6 @@ async function main() {
     ...unSignedUserOperation,
   })
 
-  console.log("partialSignatures", partialSignatures as Hex);
-  console.log("unSignedUserOperation", unSignedUserOperation);
-
   //Save in a json file
 
   const dataToSave = {
@@ -97,9 +92,17 @@ async function main() {
     2
   );
 
-  fs.writeFileSync('reimburseUserOperation.json', jsonString, 'utf-8');
+  fs.writeFileSync('claim-userop-signed.json', jsonString, 'utf-8');
 
-  console.log('User operation and signatures saved to reimburseUserOperation.json');
+  console.log(`Send 2 USDC to ${config.owners[1].address} on ${config.chain.name}`);
+  const unSignedUserOperationToJson = JSON.stringify(unSignedUserOperation, (key, value) =>
+    typeof value === 'bigint' ? value.toString() : value,
+    2
+  );
+
+  console.log(`USER_OPERATION: ${unSignedUserOperationToJson}`);
+  console.log(`User Signature: ${partialSignatures}`);
+  console.log(`Saved on ./claim-userop-signed.json`);
 }
 
 // Properly handle async execution

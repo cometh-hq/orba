@@ -9,141 +9,173 @@ import {
     pad,
     parseAbi,
     parseAbiParameters,
-  } from "viem";
+} from "viem";
 
-  import { delayModuleABI } from "../../abi/delayModule";
-  import { delayModuleFactoryABI } from "../../abi/delayModuleFactory";
+import { delayModuleABI } from "../../abi/delayModule";
+import { delayModuleFactoryABI } from "../../abi/delayModuleFactory";
 
-  const getDelayAddress = (
+const MODULE_ADDRESS = "0xd54895b1121a2ee3f37b502f507631fa1331bed6";
+const MODULE_FACTORY_ADDRESS = "0x000000000000aDdB49795b0f9bA5BC298cDda236";
+
+const getDelayAddress = (
     safe: Address,
     cooldown: number,
     expiration: number,
     moduleAddress: String,
     factoryAddress: `0x${string}`
-  ): Address => {
+): Address => {
     const args = encodeFunctionData({
-      abi: delayModuleABI,
-      functionName: "setUp",
-      args: [
-        encodeAbiParameters(
-          parseAbiParameters("address, address, address, uint256, uint256"),
-          [safe, safe, safe, BigInt(cooldown), BigInt(expiration)]
-        ),
-      ],
+        abi: delayModuleABI,
+        functionName: "setUp",
+        args: [
+            encodeAbiParameters(
+                parseAbiParameters("address, address, address, uint256, uint256"),
+                [safe, safe, safe, BigInt(cooldown), BigInt(expiration)]
+            ),
+        ],
     });
-  
+
     const initializer = args;
-  
+
     const code = concat([
-      "0x602d8060093d393df3363d3d373d3d3d363d73" as Hex,
-      moduleAddress.slice(2) as Hex,
-      "5af43d82803e903d91602b57fd5bf3" as Hex,
+        "0x602d8060093d393df3363d3d373d3d3d363d73" as Hex,
+        moduleAddress.slice(2) as Hex,
+        "5af43d82803e903d91602b57fd5bf3" as Hex,
     ]);
-  
+
     const salt = keccak256(
-      concat([keccak256(initializer), pad(safe, { size: 32 })])
+        concat([keccak256(initializer), pad(safe, { size: 32 })])
     );
-  
+
     return getContractAddress({
-      bytecode: code,
-      from: factoryAddress,
-      salt,
-      opcode: "CREATE2",
+        bytecode: code,
+        from: factoryAddress,
+        salt,
+        opcode: "CREATE2",
     });
-  };
-  
-  const setUpDelayModule = async ({
+};
+
+const setUpDelayModule = async ({
     safe,
     cooldown,
     expiration,
-  }: {
+}: {
     safe: Address;
     cooldown: number;
     expiration: number;
-  }): Promise<string> => {
+}): Promise<string> => {
     const setUpArgs = encodeAbiParameters(
-      parseAbiParameters(["address", "address", "address", "uint256", "uint256"]),
-      [safe, safe, safe, BigInt(cooldown), BigInt(expiration)]
+        parseAbiParameters(["address", "address", "address", "uint256", "uint256"]),
+        [safe, safe, safe, BigInt(cooldown), BigInt(expiration)]
     );
-  
+
     return encodeFunctionData({
-      abi: delayModuleABI,
-      functionName: "setUp",
-      args: [setUpArgs],
+        abi: delayModuleABI,
+        functionName: "setUp",
+        args: [setUpArgs],
     });
-  };
-  
-  const encodeDeployDelayModule = ({
+};
+
+const encodeDeployDelayModule = ({
     singletonDelayModule,
     initializer,
     safe,
-  }: {
+}: {
     singletonDelayModule: Address;
     initializer: Hex;
     safe: Address;
-  }): string => {
+}): string => {
     return encodeFunctionData({
-      abi: delayModuleFactoryABI,
-      functionName: "deployModule",
-      args: [singletonDelayModule, initializer, BigInt(safe)],
+        abi: delayModuleFactoryABI,
+        functionName: "deployModule",
+        args: [singletonDelayModule, initializer, BigInt(safe)],
     });
-  };
-  
-  const setupDelayTx = async (
+};
+
+const setupDelayTx = async (
     cooldown: number,
     expiration: number,
     moduleAddress: String,
     factoryAddress: `0x${string}`,
     guardianAddress: `0x${string}`,
     safeAddress: `0x${string}`,
-  ): Promise<Array<any>> => {
+): Promise<Array<any>> => {
     const delayModuleInitializer = await setUpDelayModule({
-      safe: safeAddress,
-      cooldown,
-      expiration,
+        safe: safeAddress,
+        cooldown,
+        expiration,
     });
-  
+
     const delayModuleInstanceAddress = getDelayAddress(
-      safeAddress,
-      cooldown,
-      expiration,
-      moduleAddress,
-      factoryAddress
+        safeAddress,
+        cooldown,
+        expiration,
+        moduleAddress,
+        factoryAddress
     );
-  
+
     return [
-      {
-        to: factoryAddress,
-        value: BigInt(0),
-        data: await encodeDeployDelayModule({
-          singletonDelayModule: moduleAddress as Address,
-          initializer: delayModuleInitializer as Hex,
-          safe: safeAddress,
-        }),
-      },
-      {
-        to: safeAddress,
-        value: BigInt(0),
-        data: encodeFunctionData({
-          abi: parseAbi(["function enableModule(address module) public"]),
-          functionName: "enableModule",
-          args: [delayModuleInstanceAddress],
-        }),
-      },
-      {
+        {
+            to: factoryAddress,
+            value: BigInt(0),
+            data: await encodeDeployDelayModule({
+                singletonDelayModule: moduleAddress as Address,
+                initializer: delayModuleInitializer as Hex,
+                safe: safeAddress,
+            }),
+        },
+        {
+            to: safeAddress,
+            value: BigInt(0),
+            data: encodeFunctionData({
+                abi: parseAbi(["function enableModule(address module) public"]),
+                functionName: "enableModule",
+                args: [delayModuleInstanceAddress],
+            }),
+        },
+        {
+            to: delayModuleInstanceAddress,
+            value: BigInt(0),
+            data: encodeFunctionData({
+                abi: parseAbi(["function enableModule(address module) public"]),
+                functionName: "enableModule",
+                args: [guardianAddress],
+            }),
+        },
+    ];
+};
+
+const delayTx = async (
+    usdcAddress: Address,
+    delayModuleInstanceAddress: Address,
+    functionName: "executeNextTx" | "execTransactionFromModule",
+    recipientAddress: Address,
+    amount: bigint,
+): Promise<any> => {
+
+    // Encode data for the USDC transfer
+    const transferData = encodeFunctionData({
+        abi: parseAbi(["function transfer(address to, uint256 amount) public returns (bool)"]),
+        functionName: "transfer",
+        args: [recipientAddress, amount],
+    });
+
+    return {
         to: delayModuleInstanceAddress,
         value: BigInt(0),
         data: encodeFunctionData({
-          abi: parseAbi(["function enableModule(address module) public"]),
-          functionName: "enableModule",
-          args: [guardianAddress],
+            abi: delayModuleABI,
+            functionName,
+            args: [usdcAddress, BigInt(0), transferData, 0],
         }),
-      },
-    ];
-  };
+    };
+};
 
 
-  export { 
+export {
     getDelayAddress,
     setupDelayTx,
+    delayTx,
+    MODULE_ADDRESS,
+    MODULE_FACTORY_ADDRESS
 };

@@ -5,10 +5,12 @@
   "main": "index.js",
   "scripts": {
     "deploy-safe": "tsx ./src/deploySafeWithDelayModule.ts",
-    "reimburse-coowner": "tsx ./src/reimburseUserOp.ts",
-    "coowner-execute": "tsx ./src/coOwnerSignExecute.ts",
-    "withdraw-and-deposit": "tsx ./src/withdrawAndDepositUserOp.ts",
-    "withdraw-with-delay": "tsx ./src/withdrawWithDelayModule.ts",
+    "user-sign-claim-reimbursement": "tsx ./src/userSignClaimReimbursement.ts",
+    "claim-reimbursement": "tsx ./src/claimReimbursement.ts",
+    "deposit-usdc-on-aave": "tsx ./src/depositOnAave.ts",
+    "start-unlock-fund": "tsx ./src/startUnlockFund.ts",
+    "finalize-unlock-fund": "tsx ./src/finalizeUnlockFund.ts",
+    "check-balance": "tsx ./src/checkBalance.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -21,7 +23,9 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "fs": "^0.0.1-security",
-    "permissionless": "^0.2.28",
-    "tslib": "^2.8.1"
+    "permissionless": "^0.2.30",
+    "tslib": "^2.8.1",
+    "viem": "^2.22.23",
+    "webauthn-p256": "^0.0.10"
   }
 }

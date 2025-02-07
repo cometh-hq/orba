@@ -17,7 +17,8 @@ export class SafeConfig {
   public readonly chain: any;
   public readonly saltNonce: bigint;
   public readonly owners: Account[];
-
+  public readonly cooldownDelay: number;
+  public readonly expiration: number;
   public readonly publicClient: any;
   public readonly pimlicoClient: any;
   public readonly paymasterClient: any;
@@ -26,18 +27,24 @@ export class SafeConfig {
   public gas: {
     maxFeePerGas: bigint;
     maxPriorityFeePerGas: bigint;
-};
+  };
   public smartAccountClient: any;
 
-  constructor() {
-    this.privateKey = this.getEnvVariable("PRIVATE_KEY") as Hex;
-    this.privateKeyCoOwner = this.getEnvVariable("PRIVATE_KEY_COOWNER") as Hex;
-    this.paymasterUrl = this.getEnvVariable("PAYMASTER_URL");
-    this.bundlerUrl = this.getEnvVariable("BUNDLER_URL");
-    this.saltNonce = BigInt(this.getEnvVariable("SALT_NONCE", "0"));
+  constructor(chainId: number) {
+    this.privateKey = this.getEnvVariable("USER_PRIVATE_KEY") as Hex;
+    this.privateKeyCoOwner = this.getEnvVariable("COSIGNER_PRIVATE_KEY") as Hex;
 
-    const chainId = this.getEnvVariable("CHAIN_ID");
+    this.cooldownDelay = parseInt(this.getEnvVariable("COOLDOWN", "60"));
+    this.expiration = parseInt(this.getEnvVariable("EXPIRATION", "600"));
+
     this.chain = this.getChain(chainId);
+
+    const chainKey = chainId === 421614 ? "ARBITRUM_SEPOLIA" : "BASE_SEPOLIA";
+
+    this.bundlerUrl = this.getEnvVariable(`${chainKey}_BUNDLER_URL`);
+    this.paymasterUrl = this.getEnvVariable(`${chainKey}_PAYMASTER_URL`);
+
+    this.saltNonce = BigInt(this.getEnvVariable("SAFE_SALT_NONCE", "0"));
 
     const owner = privateKeyToAccount(this.privateKey)
     const coOwner = privateKeyToAccount(this.privateKeyCoOwner);
@@ -61,10 +68,10 @@ export class SafeConfig {
     });
   }
 
-  private getChain(chainId: string) {
-    if (chainId === "421614") {
+  private getChain(chainId: number) {
+    if (chainId === 421614) {
       return arbitrumSepolia;
-    } else if (chainId === "84532") {
+    } else if (chainId === 84532) {
       return baseSepolia;
     } else {
       throw new Error("Invalid Chain ID");
@@ -82,7 +89,10 @@ export class SafeConfig {
     return value;
   }
 
-  public async initSafeAccount( address?: Address) {
+  public async initSafeAccount() {
+
+    const safeAddress = process.env.SMART_ACCOUNT_ADDRESS as Address;
+
     this.safeAccount = await toSafeSmartAccount({
       client: this.publicClient,
       entryPoint: {
@@ -92,19 +102,17 @@ export class SafeConfig {
       owners: this.owners,
       saltNonce: this.saltNonce,
       version: "1.4.1",
-      address,
+      ...(safeAddress ? { address: safeAddress } : {}),
     });
     this.safeAddress = await this.safeAccount.getAddress();
-    console.log("Smart Account Address:", this.safeAddress);
 
     this.gas = (await this.pimlicoClient.getUserOperationGasPrice()).fast;
-    console.log("Gas Price:", this.gas);
 
     this.smartAccountClient = createSmartAccountClient({
       account: this.safeAccount,
       chain: this.chain,
       paymaster: this.paymasterClient,
-      bundlerTransport: http(process.env.BUNDLER_URL || ""),
+      bundlerTransport: http(this.bundlerUrl || ""),
       userOperation: {
         estimateFeesPerGas: async () => this.gas,
       },
