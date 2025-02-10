@@ -8,8 +8,8 @@ async function main() {
     const config = new SafeConfig(arbitrumSepolia.id);
     await config.initSafeAccount();
 
-    const arbitrumBalance = Number(formatUnits(await getUSDCBalance(arbitrumSepolia.id, config) as bigint, 6));
-    const baseBalance = Number(formatUnits(await getUSDCBalance(baseSepolia.id, config) as bigint, 6));
+    const arbitrumBalance = Number(formatUnits(await getUSDCBalance(arbitrumSepolia.id, config.safeAddress) as bigint, 6));
+    const baseBalance = Number(formatUnits(await getUSDCBalance(baseSepolia.id, config.safeAddress) as bigint, 6));
     const globalBalance = arbitrumBalance + baseBalance;
 
     console.log(`Global balance: ${globalBalance} USDC`);

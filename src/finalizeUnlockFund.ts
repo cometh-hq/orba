@@ -28,7 +28,7 @@ async function main() {
         transport: http()
     })
 
-    const amountToWithdraw = await getUSDCBalance(config.chain.id, config);
+    const amountToWithdraw = await getUSDCBalance(config.chain.id, config.safeAddress);
 
     const delayModuleInstanceAddress = getDelayAddress(
         config.safeAddress,
@@ -46,7 +46,7 @@ async function main() {
         amountToWithdraw,
     )
     const txHashFinalize = await ownerClient.sendTransaction(finalizeWithdrawTx);
-    const amountDisplayed = Number(formatUnits(await getUSDCBalance(84532, config) as bigint, 6))
+    const amountDisplayed = Number(formatUnits(await getUSDCBalance(84532, config.safeAddress) as bigint, 6))
 
     console.log(`Send ${amountDisplayed} USDC to ${config.owners[0].address} Address to Delay Module`);
     console.log(`Tx Hash: ${txHashFinalize}`);
