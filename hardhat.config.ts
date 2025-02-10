@@ -3,7 +3,8 @@
 // To make use of automatic environment setup:
 // - Duplicate .env.example file and name it .env
 // - Fill in the environment variables
-import 'dotenv/config'
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 
 import 'hardhat-deploy'
 import { HttpNetworkAccountsUserConfig } from 'hardhat/types'

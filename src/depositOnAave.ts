@@ -21,7 +21,7 @@ import {
   entryPoint07Address,
 } from "viem/account-abstraction";
 
-import { USDC_ADDRESSES, baseSepoliaFundProvider, baseSepoliaAavePoolAddress, getUSDCBalance } from './services/usdcService';
+import { USDC_ADDRESSES, baseSepoliaAavePoolAddress, getUSDCBalance } from './services/usdcService';
 
 const usdcAddress = USDC_ADDRESSES[baseSepolia.id] as Address;
 
@@ -30,6 +30,8 @@ async function main() {
 
   const config = new SafeConfig(baseSepolia.id);
   await config.initSafeAccount();
+
+  const fundProvider = config.getEnvVariable("FUND_PROVIDER_ADDRESS") as Address;
 
   //Co-signer signs the withdrawal request
 
@@ -40,7 +42,7 @@ async function main() {
   })
 
   const withdrawalHash = await config.publicClient.readContract({
-    address: baseSepoliaFundProvider as `0x${string}`,
+    address: fundProvider as `0x${string}`,
     abi: parseAbi([
       "function getWithdrawalHash(address to, uint256 amount) external view returns (bytes32)"
     ]),
@@ -75,7 +77,7 @@ async function main() {
     args: [config.safeAddress, BigInt(2 * 10 ** 6), withdrawalSignature],
   });
 
-  const balanceFundProvider = await getUSDCBalance(baseSepolia.id, baseSepoliaFundProvider);
+  const balanceFundProvider = await getUSDCBalance(baseSepolia.id, fundProvider);
   if (balanceFundProvider < BigInt(2 * 10 ** 6)) {
     throw new Error("Not enough USDC in the fund provider.");
   }
@@ -84,7 +86,7 @@ async function main() {
     calls: [
       {
         data: withdrawData,
-        to: baseSepoliaFundProvider as `0x${string}`,
+        to: fundProvider as `0x${string}`,
         value: BigInt(0),
       },
       {

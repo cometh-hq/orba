@@ -5,12 +5,15 @@
   "main": "index.js",
   "scripts": {
     "deploy-safe": "tsx ./src/deploySafeWithDelayModule.ts",
+    "deploy-bank": "npx hardhat deploy --tags FundProvider --network base_sepolia",
+    "fund-bank": "tsx ./src/fundBank.ts",
+    "fund-safe": "tsx ./src/fundSafe.ts",
+    "check-balance": "tsx ./src/checkBalance.ts",
     "user-sign-claim-reimbursement": "tsx ./src/userSignClaimReimbursement.ts",
-    "claim-reimbursement": "tsx ./src/claimReimbursement.ts",
     "deposit-usdc-on-aave": "tsx ./src/depositOnAave.ts",
+    "claim-reimbursement": "tsx ./src/claimReimbursement.ts",
     "start-unlock-fund": "tsx ./src/startUnlockFund.ts",
     "finalize-unlock-fund": "tsx ./src/finalizeUnlockFund.ts",
-    "check-balance": "tsx ./src/checkBalance.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -21,6 +24,7 @@
     "@types/node": "^22.12.0",
     "hardhat": "^2.22.18",
     "hardhat-deploy": "^0.14.0",
+    "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   },

@@ -50,6 +50,12 @@ export class SafeConfig {
     const coOwner = privateKeyToAccount(this.privateKeyCoOwner);
     this.owners = [owner, coOwner];
 
+    this.safeAddress = '0x';
+    this.gas = {
+      maxFeePerGas: BigInt(0),
+      maxPriorityFeePerGas: BigInt(0),
+    };
+
     this.publicClient = createPublicClient({
       chain: this.chain,
       transport: http(),
@@ -78,7 +84,7 @@ export class SafeConfig {
     }
   }
 
-  private getEnvVariable(key: string, defaultValue?: string): string {
+  public getEnvVariable(key: string, defaultValue?: string): string {
     const value = process.env[key];
     if (value === undefined) {
       if (defaultValue !== undefined) {

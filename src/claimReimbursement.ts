@@ -89,12 +89,12 @@ async function main() {
     console.log(`Claim Tx Hash: ${receipt.receipt.transactionHash}`);
 
   } catch (error) {
-    if (error.code === "ENOENT") {
+    if (error instanceof Error && (error as any).code === "ENOENT") {
       console.error(`Error: File '${fileName}' not found.`);
     } else if (error instanceof SyntaxError) {
       console.error(`Error parsing JSON in file '${fileName}':`, error.message);
     } else {
-      console.error("Error reading the file:", error.message);
+      console.error("Error reading the file:", (error as Error).message);
     }
   }
 

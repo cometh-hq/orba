@@ -7,9 +7,8 @@ const USDC_ADDRESSES: Record<number, Address> = {
 };
 
 const baseSepoliaAavePoolAddress = "0xbE781D7Bdf469f3d94a62Cdcc407aCe106AEcA74";
-const baseSepoliaFundProvider = "0x988B9385C9233e5E59FabA1B11d7320B9158e5d4"
 
-const publicClients = {
+const publicClients: Record<number, ReturnType<typeof createPublicClient>> = {
     421614: createPublicClient({ chain: arbitrumSepolia, transport: http() }),
     84532: createPublicClient({ chain: baseSepolia, transport: http() }),
 };
@@ -31,5 +30,4 @@ export {
     getUSDCBalance,
     USDC_ADDRESSES,
     baseSepoliaAavePoolAddress,
-    baseSepoliaFundProvider,
 };
