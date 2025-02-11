@@ -113,9 +113,47 @@ Add the user safe address to your `.env.local`:
 SMART_ACCOUNT_ADDRESS=<YOUR_SMART_ACCOUNT_ADDRESS>
 ```
 
+## Setup Fund Provider
+
+Deploy the Fund Provider on Base with the co-signer key. The Fund Provider will be used to provide USDC to the Safe account.
+
+Disclaimer: The Fund Provider contract is for demonstration purposes only and is not intended for production use.
+
+Run the following command:
+
+```sh
+yarn deploy-bank
+```
+
+Add the Fund Provider address to your `.env.local`:
+
+```
+FUND_PROVIDER_ADDRESS=<YOUR_FUND_PROVIDER_ADDRESS>
+```
+
 ## Send USDC to the Safe on Arbitrum
 
-You can get USDC from the Circle faucet here: [https://faucet.circle.com/](https://faucet.circle.com/)
+You can get USDC for the user from the Circle faucet here: [https://faucet.circle.com/](https://faucet.circle.com/)
+
+Fund the Safe with USDC on Arbitrum. The Safe Smart Account will receive 2 USDC from the user's address on the Arbitrum chain.
+
+Run the following command:
+
+```sh
+yarn fund-safe
+```
+
+## Send USDC to the Fund Provider on Base
+
+You can get USDC for the co-signer from the Circle faucet here: [https://faucet.circle.com/](https://faucet.circle.com/)
+
+Fund the Fund Provider with USDC on Base. The Fund Provider will receive 2 USDC from the co-signer's address on the Base chain.
+
+Run the following command:
+
+```sh
+yarn fund-bank
+```
 
 ### Check Balance
 
@@ -133,12 +171,14 @@ Run the following command to sign the claim for reimbursement:
 yarn user-sign-claim-reimbursement
 ```
 
-## Deposit USDC on AAVE Base
+## Withdraw and deposit USDC on AAVE Base
 
-To deposit 2 USDC on AAVE Base, run:
+Withdraw 2 USDC from the Fund Provider on Base Sepolia and deposit into AAVE.
+
+Run the following command:
 
 ```sh
-yarn deposit-usdc-on-aave
+yarn withdraw-and-deposit-on-aave
 ```
 
 ## Co-Signer Claims Funds on Arbitrum
@@ -164,8 +204,3 @@ To finalize unlocking the funds, run:
 ```sh
 yarn finalize-unlock-fund
 ```
-
-
-
-
-

@@ -10,7 +10,7 @@
     "fund-safe": "tsx ./src/fundSafe.ts",
     "check-balance": "tsx ./src/checkBalance.ts",
     "user-sign-claim-reimbursement": "tsx ./src/userSignClaimReimbursement.ts",
-    "deposit-usdc-on-aave": "tsx ./src/depositOnAave.ts",
+    "withdraw-and-deposit-on-aave": "tsx ./src/withdrawAndDepositOnAave.ts",
     "claim-reimbursement": "tsx ./src/claimReimbursement.ts",
     "start-unlock-fund": "tsx ./src/startUnlockFund.ts",
     "finalize-unlock-fund": "tsx ./src/finalizeUnlockFund.ts",
