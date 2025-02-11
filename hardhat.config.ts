@@ -19,7 +19,7 @@ const INFURA_ID = process.env.INFURA_ID;
 const MNEMONIC = process.env.MNEMONIC
 
 // If you prefer to be authenticated using a private key, set a DEPLOYER_PRIVATE_KEY environment variable
-const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY
+const PRIVATE_KEY = process.env.USER_PRIVATE_KEY
 
 const accounts: HttpNetworkAccountsUserConfig | undefined = MNEMONIC
     ? { mnemonic: MNEMONIC }
