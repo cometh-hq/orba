@@ -1,12 +1,28 @@
 import { arbitrumSepolia, baseSepolia } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { createPublicClient, http, Hex, Address, Account } from "viem";
+import {
+  createPublicClient,
+  http,
+  Hex,
+  Address,
+  Account,
+  Chain,
+  parseAbi,
+} from "viem";
 import { createPimlicoClient } from "permissionless/clients/pimlico";
-import { createPaymasterClient, entryPoint07Address } from "viem/account-abstraction";
+import {
+  createPaymasterClient,
+  entryPoint07Address,
+} from "viem/account-abstraction";
 import { toSafeSmartAccount } from "permissionless/accounts";
 import { createSmartAccountClient } from "permissionless";
 
 import * as dotenv from "dotenv";
+import {
+  getDelayAddress,
+  MODULE_ADDRESS,
+  MODULE_FACTORY_ADDRESS,
+} from "../services/delayModuleService";
 dotenv.config({ path: ".env.local" });
 
 export class SafeConfig {
@@ -14,7 +30,7 @@ export class SafeConfig {
   public readonly privateKeyCoOwner: Hex;
   public readonly paymasterUrl: string;
   public readonly bundlerUrl: string;
-  public readonly chain: any;
+  public readonly chain: Chain;
   public readonly saltNonce: bigint;
   public readonly owners: Account[];
   public readonly cooldownDelay: number;
@@ -46,11 +62,11 @@ export class SafeConfig {
 
     this.saltNonce = BigInt(this.getEnvVariable("SAFE_SALT_NONCE", "0"));
 
-    const owner = privateKeyToAccount(this.privateKey)
+    const owner = privateKeyToAccount(this.privateKey);
     const coOwner = privateKeyToAccount(this.privateKeyCoOwner);
     this.owners = [owner, coOwner];
 
-    this.safeAddress = '0x';
+    this.safeAddress = "0x";
     this.gas = {
       maxFeePerGas: BigInt(0),
       maxPriorityFeePerGas: BigInt(0),
@@ -84,6 +100,10 @@ export class SafeConfig {
     }
   }
 
+  public async getAccountAddress() {
+    return await this.safeAccount.getAddress();
+  }
+
   public getEnvVariable(key: string, defaultValue?: string): string {
     const value = process.env[key];
     if (value === undefined) {
@@ -95,8 +115,8 @@ export class SafeConfig {
     return value;
   }
 
-  public async initSafeAccount() {
-
+  public async init(): Promise<SafeConfig> {
+    console.log("# ", this.chain.name);
     const safeAddress = process.env.SMART_ACCOUNT_ADDRESS as Address;
 
     this.safeAccount = await toSafeSmartAccount({
@@ -123,6 +143,43 @@ export class SafeConfig {
         estimateFeesPerGas: async () => this.gas,
       },
     });
+    return this;
+  }
+
+  public async getConfig() {
+    const safeAddress = await this.getAccountAddress();
+    const threshold = await this.publicClient.readContract({
+      address: safeAddress,
+      abi: parseAbi(["function getThreshold() view returns (uint256)"]),
+      functionName: "getThreshold",
+    });
+
+    const owers = await this.publicClient.readContract({
+      address: safeAddress,
+      abi: parseAbi(["function getOwners() view returns (address[])"]),
+      functionName: "getOwners",
+    });
+
+    console.log(
+      "Safe address:",
+      await safeAddress,
+      ", threshold : ",
+      threshold,
+      ", owners:",
+      owers
+    );
+
+    console.log("Delay Module: ", await this.getDelayAddress());
+  }
+
+  public async getDelayAddress() {
+    return getDelayAddress(
+      await this.getAccountAddress(),
+      this.cooldownDelay,
+      this.expiration,
+      MODULE_ADDRESS,
+      MODULE_FACTORY_ADDRESS
+    );
   }
 
   public async getGasPrice() {
