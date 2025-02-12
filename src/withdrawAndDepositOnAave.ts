@@ -24,6 +24,7 @@ import {
   baseSepoliaAavePoolAddress,
   getUSDCBalance,
 } from "./services/usdcService";
+import { getEnvVariable } from "./config/utils";
 
 const usdcAddress = USDC_ADDRESSES[baseSepolia.id] as Address;
 
@@ -31,9 +32,7 @@ async function main() {
   const config = new SafeConfig(baseSepolia.id);
   await config.init();
 
-  const fundProvider = config.getEnvVariable(
-    "FUND_PROVIDER_ADDRESS"
-  ) as Address;
+  const fundProvider = getEnvVariable("FUND_PROVIDER_ADDRESS") as Address;
 
   //Co-signer signs the withdrawal request
 

@@ -23,6 +23,7 @@ import {
   MODULE_ADDRESS,
   MODULE_FACTORY_ADDRESS,
 } from "../services/delayModuleService";
+import { getEnvVariable } from "./utils";
 dotenv.config({ path: ".env.local" });
 
 export class SafeConfig {
@@ -47,20 +48,20 @@ export class SafeConfig {
   public smartAccountClient: any;
 
   constructor(chainId: number) {
-    this.privateKey = this.getEnvVariable("USER_PRIVATE_KEY") as Hex;
-    this.privateKeyCoOwner = this.getEnvVariable("COSIGNER_PRIVATE_KEY") as Hex;
+    this.privateKey = getEnvVariable("USER_PRIVATE_KEY") as Hex;
+    this.privateKeyCoOwner = getEnvVariable("COSIGNER_PRIVATE_KEY") as Hex;
 
-    this.cooldownDelay = parseInt(this.getEnvVariable("COOLDOWN", "60"));
-    this.expiration = parseInt(this.getEnvVariable("EXPIRATION", "600"));
+    this.cooldownDelay = parseInt(getEnvVariable("COOLDOWN", "60"));
+    this.expiration = parseInt(getEnvVariable("EXPIRATION", "600"));
 
     this.chain = this.getChain(chainId);
 
     const chainKey = chainId === 421614 ? "ARBITRUM_SEPOLIA" : "BASE_SEPOLIA";
 
-    this.bundlerUrl = this.getEnvVariable(`${chainKey}_BUNDLER_URL`);
-    this.paymasterUrl = this.getEnvVariable(`${chainKey}_PAYMASTER_URL`);
+    this.bundlerUrl = getEnvVariable(`${chainKey}_BUNDLER_URL`);
+    this.paymasterUrl = getEnvVariable(`${chainKey}_PAYMASTER_URL`);
 
-    this.saltNonce = BigInt(this.getEnvVariable("SAFE_SALT_NONCE", "0"));
+    this.saltNonce = BigInt(getEnvVariable("SAFE_SALT_NONCE", "0"));
 
     const owner = privateKeyToAccount(this.privateKey);
     const coOwner = privateKeyToAccount(this.privateKeyCoOwner);
@@ -102,17 +103,6 @@ export class SafeConfig {
 
   public async getAccountAddress() {
     return await this.safeAccount.getAddress();
-  }
-
-  public getEnvVariable(key: string, defaultValue?: string): string {
-    const value = process.env[key];
-    if (value === undefined) {
-      if (defaultValue !== undefined) {
-        return defaultValue;
-      }
-      throw new Error(`Missing environment variable: ${key}`);
-    }
-    return value;
   }
 
   public async init(): Promise<SafeConfig> {

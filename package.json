@@ -5,9 +5,7 @@
   "main": "index.js",
   "scripts": {
     "deploy-safe": "tsx ./src/deploySafeWithDelayModule.ts",
-    "deploy-bank": "npx hardhat deploy --tags FundProvider --network base_sepolia",
-    "fund-bank": "tsx ./src/fundBank.ts",
-    "fund-safe": "tsx ./src/fundSafe.ts",
+    "deploy-fund-provider": "npx hardhat deploy --tags FundProvider --network base_sepolia",
     "check-balance": "tsx ./src/checkBalance.ts",
     "user-sign-claim-reimbursement": "tsx ./src/userSignClaimReimbursement.ts",
     "withdraw-and-deposit-on-aave": "tsx ./src/withdrawAndDepositOnAave.ts",
