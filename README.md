@@ -104,10 +104,20 @@ Run the following command:
 yarn deploy-safe
 ```
 
-Add the user safe address to your `.env.local`:
-
-```
-SMART_ACCOUNT_ADDRESS=<YOUR_SMART_ACCOUNT_ADDRESS>
+You will get
+```sh
+#  Base Sepolia
+Safe address: 0xb4407F7Fc369e77C8D2889D7085f4d790c2bDF7a , threshold :  2n , owners: [
+  '0x529439479855D81E28aDb3a3704471545E14760b',
+  '0x758350fad04225c8dF96aD2Ed234121938b35ECD'
+]
+Delay Module:  0xC6A9Dd6ab4643E6C8DFa7CB7DCAaeb451CC9f956
+#  Arbitrum Sepolia
+Safe address: 0xb4407F7Fc369e77C8D2889D7085f4d790c2bDF7a , threshold :  2n , owners: [
+  '0x529439479855D81E28aDb3a3704471545E14760b',
+  '0x758350fad04225c8dF96aD2Ed234121938b35ECD'
+]
+Delay Module:  0xC6A9Dd6ab4643E6C8DFa7CB7DCAaeb451CC9f956
 ```
 
 ## Setup Fund Provider
