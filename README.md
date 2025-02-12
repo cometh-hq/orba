@@ -24,15 +24,18 @@ This repository demonstrates how to use **Safe Smart Accounts** and a **Delay Mo
 
 ## Use Case
 
-1. **Initialize Wallets**  
-   - Send **User Operations ** that enables the **Delay Module** and deploys **Safes** for with the **user** and a **co-signer** as owner on **Arbitrum** and **Base**.
+The user has **10 USDC** on **Arbitrum** and wants to deposit **8 USDC** on **Base**.  
 
-2. **User Deposits Funds**  
+### Setup
+
+1. **Initialize Wallets**  
+   - Send **User Operations** that enable the **Delay Module** and deploy **Safes** with the **user** and a **co-signer** as owners on **Arbitrum** and **Base**. The **Delay Module** is enabled on the Safes.  
+
+2. **User Deposits Funds on Abritrum**  
    - The user sends **10 USDC** on **Arbitrum** to the **Safe**.
 
-3. **User wants to deposit 8 USDC on Base Aave**.
+### User wants to deposit 8 USDC on Base Aave**.
 
-  #### **Process:**  
 1. **User prepares a UserOp for the co-signer, allowing him to receive 8 USDC on Arbitrum** 
    - The user crafts a **UserOp** to send **8 USDC** on **Arbitrum**, where the funds are locked, to the **co-signer** and signs it.  
    - This signed UserOp serves as collateral for the co-signer’s reimbursement.  
