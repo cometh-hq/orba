@@ -34,7 +34,7 @@ The user has **10 USDC** on **Arbitrum** and wants to deposit **8 USDC** on **Ba
 2. **User Deposits Funds on Abritrum**  
    - The user sends **10 USDC** on **Arbitrum** to the **Safe**.
 
-### User wants to deposit 8 USDC on Base Aave**.
+### User wants to deposit 8 USDC on Base Aave.
 
 1. **User prepares a UserOp for the co-signer, allowing him to receive 8 USDC on Arbitrum** 
    - The user crafts a **UserOp** to send **8 USDC** on **Arbitrum**, where the funds are locked, to the **co-signer** and signs it.  
