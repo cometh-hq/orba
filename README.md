@@ -127,7 +127,7 @@ Disclaimer: The Fund Provider contract is for demonstration purposes only and is
 Run the following command:
 
 ```sh
-yarn deploy-bank
+yarn deploy-fund-provider
 ```
 
 Add the Fund Provider address to your `.env.local`:
@@ -136,7 +136,7 @@ Add the Fund Provider address to your `.env.local`:
 FUND_PROVIDER_ADDRESS=<YOUR_FUND_PROVIDER_ADDRESS>
 ```
 
-## Send USDC to the Safe on Arbitrum and to the Fund Provider
+## Send USDC to the Safe on Arbitrum and to the Fund Provider on Base
 
 You can get USDC for the user from the Circle faucet here: [https://faucet.circle.com/](https://faucet.circle.com/)
 Send USDC to the safe on arbitrum. These USDC will be locked.
@@ -144,10 +144,20 @@ Send USDC to the fund provider. These USDC will be used to provide fundson Base.
 
 ### Check Balance
 
-To check your balance, run:
+To check all balances, run:
 
 ```sh
 yarn check-balance
+```
+
+You will get
+```sh
+Fund provider base balance: 10 USDC
+#  Arbitrum Sepolia
+Lock: 2 USDC
+#  Base Sepolia
+Lock: 0 USDC
+Global balance: 2 USDC
 ```
 
 ## User Signs Claim for USDC Reimbursement on Arbitrum Sepolia
