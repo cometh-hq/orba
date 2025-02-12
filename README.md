@@ -136,29 +136,11 @@ Add the Fund Provider address to your `.env.local`:
 FUND_PROVIDER_ADDRESS=<YOUR_FUND_PROVIDER_ADDRESS>
 ```
 
-## Send USDC to the Safe on Arbitrum
+## Send USDC to the Safe on Arbitrum and to the Fund Provider
 
 You can get USDC for the user from the Circle faucet here: [https://faucet.circle.com/](https://faucet.circle.com/)
-
-Fund the Safe with USDC on Arbitrum. The Safe Smart Account will receive 2 USDC from the user's address on the Arbitrum chain.
-
-Run the following command:
-
-```sh
-yarn fund-safe
-```
-
-## Send USDC to the Fund Provider on Base
-
-You can get USDC for the co-signer from the Circle faucet here: [https://faucet.circle.com/](https://faucet.circle.com/)
-
-Fund the Fund Provider with USDC on Base. The Fund Provider will receive 2 USDC from the co-signer's address on the Base chain.
-
-Run the following command:
-
-```sh
-yarn fund-bank
-```
+Send USDC to the safe on arbitrum. These USDC will be locked.
+Send USDC to the fund provider. These USDC will be used to provide fundson Base.
 
 ### Check Balance
 
