@@ -27,17 +27,9 @@ async function main() {
 
   const amountToWithdraw = await getUSDCBalance(config.chain.id, safeAddress);
 
-  const delayModuleInstanceAddress = getDelayAddress(
-    safeAddress,
-    config.cooldownDelay,
-    config.expiration,
-    MODULE_ADDRESS,
-    MODULE_FACTORY_ADDRESS
-  );
-
   const startWithdrawTx = await delayTx(
     USDC_ADDRESSES[config.chain.id] as Address,
-    delayModuleInstanceAddress,
+    await config.getDelayAddress(),
     "execTransactionFromModule",
     config.owners[0].address,
     amountToWithdraw
@@ -45,7 +37,10 @@ async function main() {
 
   const txHashStart = await ownerClient.sendTransaction(startWithdrawTx);
   const amountDisplayed = Number(
-    formatUnits((await getUSDCBalance(84532, safeAddress)) as bigint, 6)
+    formatUnits(
+      (await getUSDCBalance(arbitrumSepolia.id, safeAddress)) as bigint,
+      6
+    )
   );
 
   console.log(

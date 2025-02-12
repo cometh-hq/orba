@@ -43,13 +43,8 @@ async function main() {
     amountToWithdraw
   );
   const txHashFinalize = await ownerClient.sendTransaction(finalizeWithdrawTx);
-  const amountDisplayed = Number(
-    formatUnits((await getUSDCBalance(84532, safeAddress)) as bigint, 6)
-  );
 
-  console.log(
-    `Send ${amountDisplayed} USDC to ${config.owners[0].address} Address to Delay Module`
-  );
+  console.log(`Finalize withdraw`);
   console.log(`Tx Hash: ${txHashFinalize}`);
 }
 
