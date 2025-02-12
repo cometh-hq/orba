@@ -10,6 +10,7 @@ import { SafeConfig } from "./config/safeConfig";
 import { USDC_ADDRESSES } from "./services/usdcService";
 
 import fs from "fs";
+import { getClaimFundUserOp } from "./config/utils";
 
 const usdcAddress = USDC_ADDRESSES[arbitrumSepolia.id] as Address;
 
@@ -17,42 +18,12 @@ async function main() {
   const config = new SafeConfig(arbitrumSepolia.id);
   await config.init();
 
-  let unSignedUserOperationToExecute =
-    await config.smartAccountClient.prepareUserOperation({
-      calls: [
-        {
-          to: usdcAddress,
-          value: BigInt(0),
-          data: encodeFunctionData({
-            abi: parseAbi([
-              "function transfer(address to, uint256 value) external returns (bool)",
-            ]),
-            functionName: "transfer",
-            args: [config.owners[1].address, BigInt(2 * 10 ** 6)],
-          }),
-        },
-      ],
-    });
-
-  const fileName = "claim-userop-signed.json";
   try {
-    const fileContent = fs.readFileSync(fileName, "utf-8");
+    const { unSignedUserOperation, partialSignatures } = getClaimFundUserOp();
 
-    const {
-      unSignedUserOperation,
-      partialSignatures,
-    }: {
-      unSignedUserOperation: typeof unSignedUserOperationToExecute;
-      partialSignatures: Hex;
-    } = JSON.parse(fileContent, (key, value) => {
-      if (value === null) return undefined; // Convert null back to undefined
-      if (typeof value === "string" && /^\d+$/.test(value))
-        return BigInt(value); // Convert stringified BigInt back
-      return value;
-    });
-
-    unSignedUserOperationToExecute = {
-      ...unSignedUserOperationToExecute,
+    const unSignedUserOperationToExecute = {
+      factory: undefined,
+      factoryData: undefined,
       ...unSignedUserOperation,
     };
 
@@ -70,7 +41,7 @@ async function main() {
     });
 
     const userOpHash = await config.smartAccountClient.sendUserOperation({
-      ...unSignedUserOperation,
+      ...unSignedUserOperationToExecute,
       signature: finalSignature,
     });
 
@@ -81,19 +52,18 @@ async function main() {
     );
 
     const unSignedUserOperationToJson = JSON.stringify(
-      unSignedUserOperationToExecute,
+      unSignedUserOperation,
       (key, value) => (typeof value === "bigint" ? value.toString() : value),
       2
     );
-    console.log(`USER_OPERATION: ${unSignedUserOperationToJson}`);
-    console.log(`User Signature: ${partialSignatures}`);
-    console.log(`Co-signer Signature: ${finalSignature}`);
     console.log(`Claim Tx Hash: ${receipt.receipt.transactionHash}`);
   } catch (error) {
     if (error instanceof Error && (error as any).code === "ENOENT") {
-      console.error(`Error: File '${fileName}' not found.`);
+      console.error(
+        `Error: no userop signed for reimbursement. Please run yarn user-sign-claim-reimbursement"`
+      );
     } else if (error instanceof SyntaxError) {
-      console.error(`Error parsing JSON in file '${fileName}':`, error.message);
+      console.error(`Error parsing JSON in file`, error.message);
     } else {
       console.error("Error reading the file:", (error as Error).message);
     }

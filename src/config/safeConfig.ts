@@ -5,9 +5,9 @@ import {
   http,
   Hex,
   Address,
-  Account,
   Chain,
   parseAbi,
+  PrivateKeyAccount,
 } from "viem";
 import { createPimlicoClient } from "permissionless/clients/pimlico";
 import {
@@ -33,7 +33,7 @@ export class SafeConfig {
   public readonly bundlerUrl: string;
   public readonly chain: Chain;
   public readonly saltNonce: bigint;
-  public readonly owners: Account[];
+  public readonly owners: PrivateKeyAccount[];
   public readonly cooldownDelay: number;
   public readonly expiration: number;
   public readonly publicClient: any;

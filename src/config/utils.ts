@@ -1,28 +1,19 @@
 import fs from "fs";
 import { Hex } from "viem";
+import { UserOperation } from "viem/_types/account-abstraction";
 
-function getClaimFundUserOp() {
+function getClaimFundUserOp(): {
+  unSignedUserOperation: UserOperation;
+  partialSignatures: Hex;
+} {
   const fileName = "claim-userop-signed.json";
-  try {
-    const fileContent = fs.readFileSync(fileName, "utf-8");
+  const fileContent = fs.readFileSync(fileName, "utf-8");
 
-    return JSON.parse(fileContent, (key, value) => {
-      if (value === null) return undefined; // Convert null back to undefined
-      if (typeof value === "string" && /^\d+$/.test(value))
-        return BigInt(value); // Convert stringified BigInt back
-      return value;
-    });
-  } catch (error) {
-    if (error instanceof Error && (error as any).code === "ENOENT") {
-      console.error(
-        `Error: File '${fileName}' not found. Please yarn user-sign-claim-reimbursement`
-      );
-    } else if (error instanceof SyntaxError) {
-      console.error(`Error parsing JSON in file '${fileName}':`, error.message);
-    } else {
-      console.error("Error reading the file:", (error as Error).message);
-    }
-  }
+  return JSON.parse(fileContent, (key, value) => {
+    if (value === null) return undefined; // Convert null back to undefined
+    if (typeof value === "string" && /^\d+$/.test(value)) return BigInt(value); // Convert stringified BigInt back
+    return value;
+  });
 }
 
 function getEnvVariable(key: string, defaultValue?: string): string {
