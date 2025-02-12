@@ -40,7 +40,7 @@ export class SafeConfig {
   public readonly pimlicoClient: any;
   public readonly paymasterClient: any;
   public safeAccount: any;
-  public safeAddress: Address;
+
   public gas: {
     maxFeePerGas: bigint;
     maxPriorityFeePerGas: bigint;
@@ -67,7 +67,6 @@ export class SafeConfig {
     const coOwner = privateKeyToAccount(this.privateKeyCoOwner);
     this.owners = [owner, coOwner];
 
-    this.safeAddress = "0x";
     this.gas = {
       maxFeePerGas: BigInt(0),
       maxPriorityFeePerGas: BigInt(0),
@@ -120,7 +119,6 @@ export class SafeConfig {
       version: "1.4.1",
       ...(safeAddress ? { address: safeAddress } : {}),
     });
-    this.safeAddress = await this.safeAccount.getAddress();
 
     this.gas = (await this.pimlicoClient.getUserOperationGasPrice()).fast;
 

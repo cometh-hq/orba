@@ -16,7 +16,7 @@ async function main() {
   const config = new SafeConfig(arbitrumSepolia.id);
   await config.init();
 
-  //User crafts a UserOp: sends 2 USDC on Arbitrum to the co-signer
+  const usdAmount = 0.5;
 
   const unSignedUserOperation =
     await config.smartAccountClient.prepareUserOperation({
@@ -29,7 +29,7 @@ async function main() {
               "function transfer(address to, uint256 value) external returns (bool)",
             ]),
             functionName: "transfer",
-            args: [config.owners[1].address, BigInt(2 * 10 ** 6)], // 2 USDC with 6 decimals
+            args: [config.owners[1].address, BigInt(usdAmount * 10 ** 6)], // 1 USDC with 6 decimals
           }),
         },
       ],
@@ -68,7 +68,7 @@ async function main() {
   fs.writeFileSync("claim-userop-signed.json", jsonString, "utf-8");
 
   console.log(
-    `Send 2 USDC to ${config.owners[1].address} on ${config.chain.name}`
+    `Send ${usdAmount} USDC to ${config.owners[1].address} on ${config.chain.name}`
   );
   const unSignedUserOperationToJson = JSON.stringify(
     unSignedUserOperation,

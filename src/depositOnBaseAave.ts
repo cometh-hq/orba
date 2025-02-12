@@ -13,6 +13,7 @@ import {
   createWalletClient,
   http,
   parseAbi,
+  SignMessageReturnType,
 } from "viem";
 
 import { baseSepolia } from "viem/chains";
@@ -24,15 +25,16 @@ import {
   baseSepoliaAavePoolAddress,
   getUSDCBalance,
 } from "./services/usdcService";
-import { getEnvVariable } from "./config/utils";
+import { getClaimFundUserOp, getEnvVariable } from "./config/utils";
 
 const usdcAddress = USDC_ADDRESSES[baseSepolia.id] as Address;
+const fundProvider = getEnvVariable("FUND_PROVIDER_ADDRESS") as Address;
+const usdAmount = 0.5;
 
-async function main() {
-  const config = new SafeConfig(baseSepolia.id);
-  await config.init();
-
-  const fundProvider = getEnvVariable("FUND_PROVIDER_ADDRESS") as Address;
+async function coSignerSignWithdrawalRequest(
+  config: SafeConfig
+): Promise<SignMessageReturnType> {
+  const safeAddress = await config.getAccountAddress();
 
   //Co-signer signs the withdrawal request
 
@@ -48,25 +50,43 @@ async function main() {
       "function getWithdrawalHash(address to, uint256 amount) external view returns (bytes32)",
     ]),
     functionName: "getWithdrawalHash",
-    args: [config.safeAddress, BigInt(2 * 10 ** 6)],
+    args: [safeAddress, BigInt(usdAmount * 10 ** 6)],
   });
 
-  const withdrawalSignature = await coSignerClient.signMessage({
+  const reimbursementUserOp = getClaimFundUserOp();
+
+  // Simple test: just verify that the file exists. Normally, the co-signer should perform additional checks.
+  if (!reimbursementUserOp) {
+    throw Error("No reimbursement");
+  }
+
+  return await coSignerClient.signMessage({
     message: { raw: withdrawalHash },
   });
+}
 
-  //User crafts a UserOp: withdraws 2 USDC from the fund provider and deposits them on Aave
+async function main() {
+  const config = new SafeConfig(baseSepolia.id);
+  await config.init();
+
+  const safeAddress = await config.getAccountAddress();
+
+  // CO SIGNER Verify the claim user operation has beein signer then provide a signed withdrawal request.
+  const withdrawalSignature = await coSignerSignWithdrawalRequest(config);
 
   const approve = encodeFunctionData({
     abi: erc20Abi,
     functionName: "approve",
-    args: [baseSepoliaAavePoolAddress as `0x${string}`, BigInt(2 * 10 ** 6)],
+    args: [
+      baseSepoliaAavePoolAddress as `0x${string}`,
+      BigInt(usdAmount * 10 ** 6),
+    ],
   });
 
   const supplyData = encodeFunctionData({
     abi: AAVE_POOL_ABI,
     functionName: "deposit",
-    args: [usdcAddress, BigInt(2 * 10 ** 6), config.safeAddress, 0],
+    args: [usdcAddress, BigInt(usdAmount * 10 ** 6), safeAddress, 0],
   });
 
   const withdrawData = encodeFunctionData({
@@ -74,14 +94,14 @@ async function main() {
       "function withdraw(address to, uint256 amount, bytes signature) external",
     ]),
     functionName: "withdraw",
-    args: [config.safeAddress, BigInt(2 * 10 ** 6), withdrawalSignature],
+    args: [safeAddress, BigInt(usdAmount * 10 ** 6), withdrawalSignature],
   });
 
   const balanceFundProvider = await getUSDCBalance(
     baseSepolia.id,
     fundProvider
   );
-  if (balanceFundProvider < BigInt(2 * 10 ** 6)) {
+  if (balanceFundProvider < BigInt(usdAmount * 10 ** 6)) {
     throw new Error("Not enough USDC in the fund provider.");
   }
 
@@ -146,16 +166,9 @@ async function main() {
     hash: userOpHash,
   });
 
-  console.log(`Deposit 2 USDC on ${config.chain.name}`);
-  const unSignedUserOperationToJson = JSON.stringify(
-    unSignedUserOperation,
-    (key, value) => (typeof value === "bigint" ? value.toString() : value),
-    2
-  );
-  console.log(`USER_OPERATION: ${unSignedUserOperationToJson}`);
-  console.log(`User Signature: ${partialSignatures}`);
-  console.log(`Co-signer Signature: ${finalSignature}`);
+  console.log(`Deposit ${usdAmount} USDC on ${config.chain.name}`);
   console.log(`Transaction Hash: ${receipt.receipt.transactionHash}`);
+  return;
 }
 
 main().catch((error) => {

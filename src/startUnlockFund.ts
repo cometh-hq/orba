@@ -17,19 +17,18 @@ async function main() {
   const config = new SafeConfig(arbitrumSepolia.id);
   await config.init();
 
+  const safeAddress = await config.getAccountAddress();
+
   const ownerClient = createWalletClient({
     account: config.owners[0],
     chain: config.chain,
     transport: http(),
   });
 
-  const amountToWithdraw = await getUSDCBalance(
-    config.chain.id,
-    config.safeAddress
-  );
+  const amountToWithdraw = await getUSDCBalance(config.chain.id, safeAddress);
 
   const delayModuleInstanceAddress = getDelayAddress(
-    config.safeAddress,
+    safeAddress,
     config.cooldownDelay,
     config.expiration,
     MODULE_ADDRESS,
@@ -46,7 +45,7 @@ async function main() {
 
   const txHashStart = await ownerClient.sendTransaction(startWithdrawTx);
   const amountDisplayed = Number(
-    formatUnits((await getUSDCBalance(84532, config.safeAddress)) as bigint, 6)
+    formatUnits((await getUSDCBalance(84532, safeAddress)) as bigint, 6)
   );
 
   console.log(

@@ -9,7 +9,7 @@
     "deploy-fund-provider": "npx hardhat deploy --tags FundProvider --network base_sepolia",
     "check-balance": "tsx ./src/checkBalance.ts",
     "user-sign-claim-reimbursement": "tsx ./src/userSignClaimReimbursement.ts",
-    "withdraw-and-deposit-on-aave": "tsx ./src/withdrawAndDepositOnAave.ts",
+    "deposit-on-base-aave": "tsx ./src/depositOnBaseAave.ts",
     "claim-reimbursement": "tsx ./src/claimReimbursement.ts",
     "start-unlock-fund": "tsx ./src/startUnlockFund.ts",
     "finalize-unlock-fund": "tsx ./src/finalizeUnlockFund.ts",
