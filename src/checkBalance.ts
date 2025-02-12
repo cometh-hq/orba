@@ -10,7 +10,10 @@ async function getBalance(chain: Chain) {
 
   const balance = Number(
     formatUnits(
-      (await getUSDCBalance(arbitrumSepolia.id, config.safeAddress)) as bigint,
+      (await getUSDCBalance(
+        chain.id,
+        await config.getAccountAddress()
+      )) as bigint,
       6
     )
   );
@@ -21,7 +24,7 @@ async function getBalance(chain: Chain) {
 async function main() {
   const fundProvider = getEnvVariable("FUND_PROVIDER_ADDRESS") as Address;
   const fundProviderBalance = formatUnits(
-    (await getUSDCBalance(arbitrumSepolia.id, fundProvider)) as bigint,
+    (await getUSDCBalance(baseSepolia.id, fundProvider)) as bigint,
     6
   );
   console.log(`Fund provider base balance: ${fundProviderBalance} USDC`);

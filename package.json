@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "deploy-safe": "tsx ./src/deploySafeWithDelayModule.ts",
+    "safe-config": "tsx ./src/getSafeConfig.ts",
     "deploy-fund-provider": "npx hardhat deploy --tags FundProvider --network base_sepolia",
     "check-balance": "tsx ./src/checkBalance.ts",
     "user-sign-claim-reimbursement": "tsx ./src/userSignClaimReimbursement.ts",
