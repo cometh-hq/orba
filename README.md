@@ -1,69 +1,60 @@
-# One Balance with Safe Smart Account and Delay module
+# Orba: Safe Account as Resource Lock
 
-## What is One Balance
-OneBalance is a Chain Abstraction Toolkit designed to simplify cross-chain interactions by utilizing Credible Accounts. These accounts enable users to manage funds across multiple blockchains efficiently, allowing for secure deposits and controlled, permissioned withdrawals without relying on global consensus mechanisms. 
+## What is OneBalance?  
+OneBalance is a Chain Abstraction Toolkit designed to simplify cross-chain interactions by utilizing **Credible Accounts**. These accounts enable users to manage funds across multiple blockchains efficiently, allowing for secure deposits and controlled, permissioned withdrawals without relying on global consensus mechanisms.
 
-More details can be found in the official documentation:
-- [Getting Started with One Balance and Privy](https://docs.onebalance.io/chain-abstraction-toolkit/getting-started-with-onebalance-and-privy)
-- [Initializing and Depositing onto the One Balance Smart Account](https://docs.onebalance.io/chain-abstraction-toolkit/getting-started-with-onebalance-and-privy/step-3-initializing-and-depositing-onto-the-onebalance-smart-account)
+More details can be found in the official documentation:  
+- [Getting Started with OneBalance and Privy](https://docs.onebalance.io/chain-abstraction-toolkit/getting-started-with-onebalance-and-privy)  
+- [Initializing and Depositing onto the OneBalance Smart Account](https://docs.onebalance.io/chain-abstraction-toolkit/getting-started-with-onebalance-and-privy/step-3-initializing-and-depositing-onto-the-onebalance-smart-account)  
 
-## Purpose of this POC
-In OneBalance, the **Lock Module** secures user funds by enforcing **resource locks**, ensuring that assets remain escrowed until specific conditions or an expiry time are met. This prevents double-spending and maintains execution integrity in cross-chain transactions.  
+## Safe and Delay Module as Resource Lock  
+A **resource lock** ensures that assets remain escrowed until specific conditions or an expiry time are met.  
+This prevents double-spending and maintains execution integrity in cross-chain transactions.
 
-This POC aims to replace OneBalance’s **Lock Module** with a combination of **Safe Smart Accounts** and a **Delay Module**, providing similar security guarantees with Safe accounts.  
+This repository demonstrates how to use **Safe Smart Accounts** and a **Delay Module** as a resource lock.
 
-## How the Replacement Works  
+### 1. Safe Smart Accounts  
+- A multi-signature wallet where ownership is shared between the **user** and a **co-signer**.  
+- Transactions require signatures from both parties. User will initiate a transaction, the co-signer will validate it if certains conditions are met.
 
-### OneBalance Lock Module  
-In OneBalance, a **Resource Lock** holds funds within the user’s **Credible Account** until:  
-- A fulfillment condition is met.  
-- The lock expires.  
-- A solver executes the state transition.  
+### 2. Delay Module  
+- Enforces a **cooldown period** before a transaction can be executed.  
+- Prevents immediate fund access.
+- The user has the right to propose a transaction to the delay module, allowing them to retrieve their funds after the cooldown period.  
 
-This mechanism ensures solvers are not griefed by users attempting to cancel or modify transactions mid-execution.  
+## Use Case
 
-### Safe Smart Accounts & Delay Module  
-Instead of OneBalance’s **resource lock**, this POC achieves similar functionality using:  
-1. **Safe Smart Accounts**  
-   - A multi-signature wallet where ownership is shared between the **user** and **OneBalance’s co-signer**.  
-   - Transactions require signatures from both parties to ensure security.  
+1. **Initialize Wallets**  
+   - Send **User Operations ** that enables the **Delay Module** and deploys **Safes** for with the **user** and a **co-signer** as owner on **Arbitrum** and **Base**.
 
-2. **Delay Module**  
-   - Enforces a **cooldown period** before funds can be withdrawn.  
-   - Sets an **expiration** to finalize or cancel the withdrawal.  
-   - Prevents immediate fund access, mimicking OneBalance’s time-lock mechanism.  
+2. **User Deposits Funds**  
+   - The user sends **10 USDC** on **Arbitrum** to the **Safe**.
 
-### Workflow Comparison  
+3. **User wants to deposit 8 USDC on Base Aave**.
 
-| Feature                   | OneBalance Lock Module            | Safe Smart Account + Delay Module |
-|---------------------------|----------------------------------|-----------------------------------|
-| Lock Mechanism            | Resource Lock                   | Delay Module                     |
-| Ownership                 | Credible Account                | Safe Smart Account (user + co-signer) |
-| Execution Control         | Solvers execute transactions    | User + co-signer sign transactions |
-| Time-Locked Withdrawals   | Lock expires after a set time   | Withdrawal delay (cooldown) |
-| Modification Flexibility  | Resource locks prevent changes  | User can modify Safe after cooldown |
+  #### **Process:**  
+1. **User prepares a UserOp for the co-signer, allowing him to receive 8 USDC on Arbitrum** 
+   - The user crafts a **UserOp** to send **8 USDC** on **Arbitrum**, where the funds are locked, to the **co-signer** and signs it.  
+   - This signed UserOp serves as collateral for the co-signer’s reimbursement.  
+   - The co-signer holds onto this signed UserOp until the deposit on **Base Aave** is completed.  
 
+2. **Co-signer authorizes withdrawal on Base**  
+   - The co-signer signs a **withdrawal request**, authorizing the user to receive **8 USDC** on **Base** from the co-signer.  
 
-## Glossary
+3. **User initiates withdrawal and deposit on Base Aave**  
+   - The user crafts another **UserOp** to call the **withdrawal function** on **Base** using the request signed by the co-signer, retrieve **8 USDC**, and deposit it into **Aave**.  
 
-### Resource Lock
+4. **User requests co-signer’s approval**  
+   - The user requests the co-signer's **signature** for this UserOp.
+   - Co-signer sign it.
 
-A **Resource Lock** is a credible commitment made by a user to escrow some state based on specific conditions or an expiry time. It ensures that a certain amount of assets remains locked until either the conditions are met or the expiration time is reached.
-A user can specify a **lock** amount, a **fulfillment condition**, and an **expiry** time. This prevents double-spending and ensures that solvers (executors of the request) are not griefed during execution.
+5. **Execution on Base**  
+   - The **UserOp**, signed by both the user and the co-signer, is sent to **Base** to execute:  
+     - Withdraw **8 USDC** from the co-signer.  
+     - Deposit **8 USDC** into **Aave**.  
 
-### Credible Commitment
-
-A **Credible Commitment** is a guarantee made by a user’s account about what messages it will and won’t sign. This prevents equivocation (contradicting previous commitments) and ensures reliability in cross-chain interactions.
-
-### Credible Account
-
-A Credible Account operates in a **secure environment** chosen by the user and functions as its own **rollup**, maintaining user states across chains. It ensures that transactions follow predefined rules, preventing double-spending and equivocation.
-
-Each **OneBalance account** functions like its own **rollup**, managing user states across multiple chains. It wraps these states in a virtual environment that:
-- Issues **state transition requests** as **resource locks**.
-- Executes these transitions through **cross-chain execution proofs**.
-- Is secured by a **credible commitment machine**, ensuring commitments remain valid.
-
+6. **Co-signer reimbursement**
+   - The signed **UserOp**, authorizing the co-signer to receive **8 USDC** on **Arbitrum**, is signed by the co-signer and executed on **Arbitrum** to **reimburse** him.  
 
 # Setup and Usage Instructions
 
