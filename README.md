@@ -168,14 +168,40 @@ Run the following command to sign the claim for reimbursement:
 yarn user-sign-claim-reimbursement
 ```
 
-## Withdraw and deposit USDC on AAVE Base
+You will get
 
-Withdraw 2 USDC from the Fund Provider on Base Sepolia and deposit into AAVE.
+```sh
+  Arbitrum Sepolia
+Send 0.5 USDC to 0x758350fad04225c8dF96aD2Ed234121938b35ECD on Arbitrum Sepolia
+USER_OPERATION: {
+  "paymaster": "0x6a6B7f6012ee5bEF1cDf95df25e5045C7727c739",
+  "sender": "0xb4407F7Fc369e77C8D2889D7085f4d790c2bDF7a",
+  "callData": "0x541d63c800000000000000000000000075faf114eafb1bdbe2f0316df893fd58ce46aa4d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044a9059cbb000000000000000000000000758350fad04225c8df96ad2ed234121938b35ecd000000000000000000000000000000000000000000000000000000000007a12000000000000000000000000000000000000000000000000000000000",
+  "maxFeePerGas": "120000000",
+  "maxPriorityFeePerGas": "600000",
+  "nonce": "32085707833393130832632175656960",
+  "signature": "0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "paymasterData": "0x0000000000000000000000000000000000000000000000000000000067e39b6b00000000000000000000000000000000000000000000000000000000000012340c534bca663555d229d54221c724ac2c9def5eca2675204065e5373e8b325c344946d02c8bfa3915ed13d69f9dcd5214c24a0706077cdecfcea76f58593c7da51c",
+  "paymasterPostOpGasLimit": "20000",
+  "paymasterVerificationGasLimit": "600000",
+  "callGasLimit": "168564",
+  "preVerificationGas": "60869",
+  "verificationGasLimit": "100984"
+}
+User Signature: 0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000529439479855d81e28adb3a3704471545e14760b0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000004104387ddc3bd6c158b1dede616cbdaf9d90b1a8658cd3ec13453e7ae58e4ff20e46d72552037e0007003c5e228286fa5f3cc2c4f9e43f0714231defd011e3ecfe1c00000000000000000000000000000000000000000000000000000000000000
+Saved on ./claim-userop-signed.json
+```
+
+These data are saved in **./claim-userop-signed.json**. This will be used by the co-signer to claim their reimbursement.  
+
+## Deposit USDC on Base Aave
+
+Withdraw 0.5 USDC from the Fund Provider on Base Sepolia and deposit into AAVE.
 
 Run the following command:
 
 ```sh
-yarn withdraw-and-deposit-on-aave
+yarn deposit-on-base-aave
 ```
 
 ## Co-Signer Claims Funds on Arbitrum
@@ -186,7 +212,15 @@ To claim the funds on Arbitrum, the co-signer needs to run the following command
 yarn claim-reimbursement
 ```
 
+You will get:
+```
+#  Arbitrum Sepolia
+Claim Tx Hash: 0x561766407cfe9374ad9ec3130f999d252b3e7c9ebe5f7211560f88eb26255a01
+```
+
 ## User Starts Unlocking Funds on Arbitrum
+
+This use you User EOA to send the transaction, be sure it got Arbitrum sepolia ETH.
 
 To start unlocking the funds, run:
 
@@ -194,10 +228,26 @@ To start unlocking the funds, run:
 yarn start-unlock-fund
 ```
 
+You will get
+```sh
+Submit send 1.5 USDC to 0x529439479855D81E28aDb3a3704471545E14760b Address to Delay Module
+Tx Hash: 0x6ebdb58937e76f8c60dbd90bfa4662885bed49ef2a04f6e07655b3f45d7be752
+Start Finalize in 20 seconds.
+```
+
 ## User Finalizes Unlocking Funds on Arbitrum
+
+This use you User EOA to send the transaction, be sure it got Arbitrum sepolia ETH.
 
 To finalize unlocking the funds, run:
 
 ```sh
 yarn finalize-unlock-fund
 ```
+
+You will get
+```sh
+Finalize withdraw
+Tx Hash: 0xe309785f28cccddc16e1f40385e83438b0cfff4daefd27efafa257b614fab7b2
+```
+
