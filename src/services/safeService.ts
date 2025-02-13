@@ -1,4 +1,4 @@
-import { Address, encodeFunctionData, Hex, parseAbi } from "viem";
+import { Address, encodeFunctionData, Hex, parseAbi, PublicClient } from "viem";
 import {
   getDelayAddress,
   setUpDelayModule,
@@ -69,4 +69,37 @@ const setupSafeWithDelayModule = async (
   ];
 };
 
-export { setupSafeWithDelayModule };
+const getConfig = async (
+  address: `0x${string}`,
+  publicClient: PublicClient,
+  cooldown: number,
+  expiration: number
+) => {
+  const threshold = await publicClient.readContract({
+    address: address,
+    abi: parseAbi(["function getThreshold() view returns (uint256)"]),
+    functionName: "getThreshold",
+  });
+
+  const owers = await publicClient.readContract({
+    address: address,
+    abi: parseAbi(["function getOwners() view returns (address[])"]),
+    functionName: "getOwners",
+  });
+
+  console.log(
+    "Safe address:",
+    await address,
+    ", threshold : ",
+    threshold,
+    ", owners:",
+    owers
+  );
+
+  console.log(
+    "Delay Module: ",
+    await getDelayAddress(address, cooldown, expiration)
+  );
+};
+
+export { setupSafeWithDelayModule, getConfig };

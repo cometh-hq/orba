@@ -34,7 +34,9 @@ const usdAmount = 0.5;
 async function coSignerSignWithdrawalRequest(
   config: SafeConfig
 ): Promise<SignMessageReturnType> {
-  const safeAddress = await config.getAccountAddress();
+  const smartAccountClient = await config.smartAccountClient();
+  const safeAddress = smartAccountClient.account.address;
+  const publicClient = config.publicClient();
 
   //Co-signer signs the withdrawal request
 
@@ -44,7 +46,7 @@ async function coSignerSignWithdrawalRequest(
     transport: http(),
   });
 
-  const withdrawalHash = await config.publicClient.readContract({
+  const withdrawalHash = await publicClient.readContract({
     address: fundProvider as `0x${string}`,
     abi: parseAbi([
       "function getWithdrawalHash(address to, uint256 amount) external view returns (bytes32)",
@@ -66,10 +68,10 @@ async function coSignerSignWithdrawalRequest(
 }
 
 async function main() {
-  const config = new SafeConfig(baseSepolia.id);
-  await config.init();
-
-  const safeAddress = await config.getAccountAddress();
+  const config = new SafeConfig(baseSepolia);
+  const smartAccountClient = await config.smartAccountClient();
+  const safeAddress = smartAccountClient.account.address;
+  const publicClient = config.publicClient();
 
   // CO SIGNER Verify the claim user operation has beein signer then provide a signed withdrawal request.
   const withdrawalSignature = await coSignerSignWithdrawalRequest(config);
@@ -97,34 +99,30 @@ async function main() {
     args: [safeAddress, BigInt(usdAmount * 10 ** 6), withdrawalSignature],
   });
 
-  const balanceFundProvider = await getUSDCBalance(
-    baseSepolia.id,
-    fundProvider
-  );
+  const balanceFundProvider = await getUSDCBalance(publicClient, fundProvider);
   if (balanceFundProvider < BigInt(usdAmount * 10 ** 6)) {
     throw new Error("Not enough USDC in the fund provider.");
   }
 
-  const unSignedUserOperation =
-    await config.smartAccountClient.prepareUserOperation({
-      calls: [
-        {
-          data: withdrawData,
-          to: fundProvider as `0x${string}`,
-          value: BigInt(0),
-        },
-        {
-          data: approve,
-          to: usdcAddress as `0x${string}`,
-          value: BigInt(0),
-        },
-        {
-          data: supplyData,
-          to: baseSepoliaAavePoolAddress as `0x${string}`,
-          value: BigInt(0),
-        },
-      ],
-    });
+  const unSignedUserOperation = await smartAccountClient.prepareUserOperation({
+    calls: [
+      {
+        data: withdrawData,
+        to: fundProvider as `0x${string}`,
+        value: BigInt(0),
+      },
+      {
+        data: approve,
+        to: usdcAddress as `0x${string}`,
+        value: BigInt(0),
+      },
+      {
+        data: supplyData,
+        to: baseSepoliaAavePoolAddress as `0x${string}`,
+        value: BigInt(0),
+      },
+    ],
+  });
 
   //User signs the userOp
 
@@ -157,12 +155,12 @@ async function main() {
 
   //The userOp is sent to the network
 
-  const userOpHash = await config.smartAccountClient.sendUserOperation({
+  const userOpHash = await smartAccountClient.sendUserOperation({
     ...unSignedUserOperation,
     signature: finalSignature,
   });
 
-  const receipt = await config.smartAccountClient.waitForUserOperationReceipt({
+  const receipt = await smartAccountClient.waitForUserOperationReceipt({
     hash: userOpHash,
   });
 

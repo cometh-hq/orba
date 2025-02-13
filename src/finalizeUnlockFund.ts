@@ -14,10 +14,10 @@ import { getUSDCBalance, USDC_ADDRESSES } from "./services/usdcService";
 import { SafeConfig } from "./config/safeConfig";
 
 async function main() {
-  const config = new SafeConfig(arbitrumSepolia.id);
-  await config.init();
-
-  const safeAddress = await config.getAccountAddress();
+  const config = new SafeConfig(arbitrumSepolia);
+  const smartAccountClient = await config.smartAccountClient();
+  const safeAddress = smartAccountClient.account.address;
+  const publicClient = config.publicClient();
 
   const ownerClient = createWalletClient({
     account: config.owners[0],
@@ -25,7 +25,7 @@ async function main() {
     transport: http(),
   });
 
-  const amountToWithdraw = await getUSDCBalance(config.chain.id, safeAddress);
+  const amountToWithdraw = await getUSDCBalance(publicClient, safeAddress);
 
   const delayModuleInstanceAddress = getDelayAddress(
     safeAddress,

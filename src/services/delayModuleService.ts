@@ -21,8 +21,8 @@ const getDelayAddress = (
   safe: Address,
   cooldown: number,
   expiration: number,
-  moduleAddress: String,
-  factoryAddress: `0x${string}`
+  moduleAddress: String = MODULE_ADDRESS,
+  factoryAddress: `0x${string}` = MODULE_FACTORY_ADDRESS
 ): Address => {
   const args = encodeFunctionData({
     abi: delayModuleABI,

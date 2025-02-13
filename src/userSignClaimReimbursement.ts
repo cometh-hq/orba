@@ -13,27 +13,26 @@ import fs from "fs";
 const usdcAddress = USDC_ADDRESSES[arbitrumSepolia.id] as Address;
 
 async function main() {
-  const config = new SafeConfig(arbitrumSepolia.id);
-  await config.init();
+  const config = new SafeConfig(arbitrumSepolia);
+  const smartAccountClient = await config.smartAccountClient();
 
   const usdAmount = 0.5;
 
-  const unSignedUserOperation =
-    await config.smartAccountClient.prepareUserOperation({
-      calls: [
-        {
-          to: usdcAddress,
-          value: BigInt(0),
-          data: encodeFunctionData({
-            abi: parseAbi([
-              "function transfer(address to, uint256 value) external returns (bool)",
-            ]),
-            functionName: "transfer",
-            args: [config.owners[1].address, BigInt(usdAmount * 10 ** 6)], // 1 USDC with 6 decimals
-          }),
-        },
-      ],
-    });
+  const unSignedUserOperation = await smartAccountClient.prepareUserOperation({
+    calls: [
+      {
+        to: usdcAddress,
+        value: BigInt(0),
+        data: encodeFunctionData({
+          abi: parseAbi([
+            "function transfer(address to, uint256 value) external returns (bool)",
+          ]),
+          functionName: "transfer",
+          args: [config.owners[1].address, BigInt(usdAmount * 10 ** 6)], // 1 USDC with 6 decimals
+        }),
+      },
+    ],
+  });
 
   let partialSignatures = await SafeSmartAccount.signUserOperation({
     version: "1.4.1",

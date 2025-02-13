@@ -12,11 +12,9 @@ import { USDC_ADDRESSES } from "./services/usdcService";
 import fs from "fs";
 import { getClaimFundUserOp } from "./config/utils";
 
-const usdcAddress = USDC_ADDRESSES[arbitrumSepolia.id] as Address;
-
 async function main() {
-  const config = new SafeConfig(arbitrumSepolia.id);
-  await config.init();
+  const config = new SafeConfig(arbitrumSepolia);
+  const smartAccountClient = await config.smartAccountClient();
 
   try {
     const { unSignedUserOperation, partialSignatures } = getClaimFundUserOp();
@@ -40,16 +38,14 @@ async function main() {
       ...unSignedUserOperationToExecute,
     });
 
-    const userOpHash = await config.smartAccountClient.sendUserOperation({
+    const userOpHash = await smartAccountClient.sendUserOperation({
       ...unSignedUserOperationToExecute,
       signature: finalSignature,
     });
 
-    const receipt = await config.smartAccountClient.waitForUserOperationReceipt(
-      {
-        hash: userOpHash,
-      }
-    );
+    const receipt = await smartAccountClient.waitForUserOperationReceipt({
+      hash: userOpHash,
+    });
 
     const unSignedUserOperationToJson = JSON.stringify(
       unSignedUserOperation,

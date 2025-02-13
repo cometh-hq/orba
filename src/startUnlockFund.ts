@@ -10,14 +10,13 @@ import {
 } from "./services/delayModuleService";
 
 import { getUSDCBalance, USDC_ADDRESSES } from "./services/usdcService";
-
 import { SafeConfig } from "./config/safeConfig";
 
 async function main() {
-  const config = new SafeConfig(arbitrumSepolia.id);
-  await config.init();
-
-  const safeAddress = await config.getAccountAddress();
+  const config = new SafeConfig(arbitrumSepolia);
+  const smartAccountClient = await config.smartAccountClient();
+  const safeAddress = smartAccountClient.account.address;
+  const publicClient = config.publicClient();
 
   const ownerClient = createWalletClient({
     account: config.owners[0],
@@ -25,11 +24,19 @@ async function main() {
     transport: http(),
   });
 
-  const amountToWithdraw = await getUSDCBalance(config.chain.id, safeAddress);
+  const amountToWithdraw = await getUSDCBalance(publicClient, safeAddress);
+
+  const delayModuleInstanceAddress = getDelayAddress(
+    safeAddress,
+    config.cooldownDelay,
+    config.expiration,
+    MODULE_ADDRESS,
+    MODULE_FACTORY_ADDRESS
+  );
 
   const startWithdrawTx = await delayTx(
     USDC_ADDRESSES[config.chain.id] as Address,
-    await config.getDelayAddress(),
+    delayModuleInstanceAddress,
     "execTransactionFromModule",
     config.owners[0].address,
     amountToWithdraw
@@ -37,10 +44,7 @@ async function main() {
 
   const txHashStart = await ownerClient.sendTransaction(startWithdrawTx);
   const amountDisplayed = Number(
-    formatUnits(
-      (await getUSDCBalance(arbitrumSepolia.id, safeAddress)) as bigint,
-      6
-    )
+    formatUnits((await getUSDCBalance(publicClient, safeAddress)) as bigint, 6)
   );
 
   console.log(
